@@ -32,10 +32,10 @@ cd npt
 
 # Abra o arquivo no navegador
 # Windows
-start sistema-npt-2025-12.html
+start sistema-npt-local-2025-12.html
 
 # Linux/Mac
-open sistema-npt-2025-12.html
+open sistema-npt-local-2025-12.html
 ```
 
 Não requer servidor ou instalação. Funciona diretamente no navegador!
@@ -48,7 +48,7 @@ Consulte o [Guia de Implantação SharePoint](docs/SHAREPOINT-DEPLOYMENT.md) par
 
 ```
 npt/
-├── 📄 sistema-npt-2025-12.html           # Versão atual (localStorage)
+├── 📄 sistema-npt-local-2025-12.html     # Versão local (localStorage)
 ├── 📄 sistema-npt-sharepoint-2025-12.html # Versão SharePoint com relatórios
 ├── 📄 sistema-npt-2025-08-legacy.html    # Versão legada (deprecated)
 │
@@ -183,7 +183,7 @@ npt/
 }
 ```
 
-2. Abra `sistema-npt-2025-12.html` no navegador
+2. Abra `sistema-npt-local-2025-12.html` no navegador
 
 ### SharePoint Version
 

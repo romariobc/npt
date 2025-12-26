@@ -2,15 +2,62 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+**Last Updated**: December 25, 2025
+**Version**: 2025.12
+**Git Repository**: https://github.com/romariobc/npt
+
+---
+
 ## Project Overview
 
 Sistema NPT HUWC (Nutritional Parenteral Therapy) - A single-page web application for managing the complete lifecycle of NPT prescriptions, from medical prescription to final dispensing or loss/return. Implements the official HUWC workflow effective from 02/12/2025.
 
+**Project Status**: ✅ Production Ready | 📦 Published on GitHub | 📊 Full Reports & Dashboards
+
+---
+
+## Recent Changes (December 25, 2025)
+
+### ✨ Major Updates
+
+1. **SharePoint Version Enhanced**:
+   - ✅ Added complete Reports & Dashboards tab
+   - ✅ 6 KPIs in real-time (Total, Dispensadas, Aguardando, Perdas, Taxa Aproveitamento, Taxa Conformidade)
+   - ✅ 3 interactive charts with Chart.js 4.4.0:
+     - Doughnut chart: Prescription status distribution
+     - Horizontal bar chart: Top 10 loss reasons
+     - Line chart: 7-day temporal evolution
+   - ✅ Detailed loss analysis table with percentages and visual progress bars
+
+2. **Documentation Improvements**:
+   - ✅ Complete SharePoint deployment guide (10 parts, 850+ lines)
+   - ✅ Professional README.md with badges and structure
+   - ✅ All documentation organized in `/docs/` folder
+   - ✅ Git repository configured with .gitignore
+
+3. **Repository Structure**:
+   - ✅ Published to GitHub: https://github.com/romariobc/npt
+   - ✅ Files renamed for clarity:
+     - `sistema-npt-local-2025-12.html` (localStorage version)
+     - `sistema-npt-sharepoint-2025-12.html` (SharePoint + Reports)
+   - ✅ 8 technical documents in `/docs/`
+   - ✅ Initial commit completed
+
+### 🗂️ File Naming Convention Update
+
+**Previous**: `sistema-npt-2025-12.html`
+**Current**: `sistema-npt-local-2025-12.html` (localStorage)
+**Current**: `sistema-npt-sharepoint-2025-12.html` (SharePoint + Dashboards)
+
+This change clarifies which version is local (standalone) vs SharePoint (enterprise).
+
+---
+
 ## Files in Repository
 
 ### Application Files
-- `sistema-npt-2025-12.html` - **CURRENT VERSION (localStorage)** - Complete workflow with browser storage (USE THIS for standalone)
-- `sistema-npt-sharepoint-2025-12.html` - **SHAREPOINT VERSION** - Enterprise edition with SharePoint integration, reports & dashboards
+- `sistema-npt-local-2025-12.html` - **LOCAL VERSION (localStorage)** - Standalone with browser storage (USE THIS for single-user/testing)
+- `sistema-npt-sharepoint-2025-12.html` - **SHAREPOINT VERSION** - Enterprise edition with SharePoint integration, reports & dashboards (USE THIS for production)
 - `sistema-npt-2025-08-legacy.html` - Legacy version with simplified flow (DEPRECATED - Aug 2025)
 
 ### SharePoint Integration Files
@@ -18,17 +65,28 @@ Sistema NPT HUWC (Nutritional Parenteral Therapy) - A single-page web applicatio
 - `sharepoint-api.js` - SharePoint REST API wrapper (CRUD operations)
 - `auth-simulator.js` - Development authentication simulator (DO NOT use in production)
 
-### Documentation
+### Documentation (in `/docs/` folder)
 - `CLAUDE.md` - This file (project overview and instructions)
-- `SHAREPOINT-DEPLOYMENT.md` - Complete SharePoint deployment guide
+- `README.md` - Main project documentation (GitHub landing page)
+- `SHAREPOINT-DEPLOYMENT.md` - Complete SharePoint deployment guide (10 parts)
+- `DOCUMENTACAO_TECNICA.md` - Full technical documentation
+- `ROTEIRO_TESTES.md` - Complete test cases
+- `CHECKLIST_VALIDACAO.md` - Validation checklist
+- `APRESENTACAO_TI.md` - IT presentation
+- `GUIA_CONFIGURACAO_SHAREPOINT.md` - SharePoint configuration guide
+- `ESTRUTURA_PROJETO.md` - Project structure
+- `PLANEJAMENTO_BACKEND_SEGURO.md` - Secure backend planning
 
 ### Authentication
 - `usuarios.json` - User credentials for localStorage version
 
+### Git Configuration
+- `.gitignore` - Excludes `.claude/`, `.claude`, logs, cache, IDE configs
+
 ## Architecture
 
 ### Single-File Structure
-The application is contained in `sistema-npt-2025-12.html`:
+The local application is contained in `sistema-npt-local-2025-12.html`:
 - **Frontend**: HTML5 with Bootstrap 5.3.0
 - **Styling**: Embedded CSS with Bootstrap components
 - **Logic**: Modern vanilla JavaScript (ES6+) with no build process
@@ -176,7 +234,11 @@ Default users (fallback if usuarios.json unavailable):
 
 ## Running the Application
 
-**To run**: Simply open `sistema-npt-2025-12.html` in any modern web browser. No build process, server, or dependencies required.
+### Local Version (localStorage)
+**To run**: Simply open `sistema-npt-local-2025-12.html` in any modern web browser. No build process, server, or dependencies required.
+
+### SharePoint Version
+**To run**: Follow the [SharePoint Deployment Guide](docs/SHAREPOINT-DEPLOYMENT.md) for complete setup instructions.
 
 **Browser Requirements**:
 - LocalStorage API support
@@ -305,7 +367,7 @@ See `SHAREPOINT-DEPLOYMENT.md` for complete step-by-step deployment instructions
 
 ### When to Use Each Version
 
-**Use localStorage version** (`sistema-npt-2025-12.html`) when:
+**Use localStorage version** (`sistema-npt-local-2025-12.html`) when:
 - Single-user or small team
 - No SharePoint infrastructure available
 - Quick deployment needed
@@ -321,7 +383,6 @@ See `SHAREPOINT-DEPLOYMENT.md` for complete step-by-step deployment instructions
 ## Important Limitations
 
 ### localStorage Version
-- This is **not a git repository** (no version control)
 - No server-side validation - all security is client-side
 - Passwords stored in plain text in `usuarios.json`
 - Data loss possible if localStorage is cleared
@@ -337,3 +398,74 @@ See `SHAREPOINT-DEPLOYMENT.md` for complete step-by-step deployment instructions
 - Production requires Microsoft Entra ID configuration by IT
 - Performance depends on SharePoint service availability
 - Browser compatibility: Modern browsers only (Chrome, Edge, Firefox)
+
+---
+
+## Version History
+
+### v2025.12 (December 25, 2025) - Current ✅
+- **Added**: Complete Reports & Dashboards in SharePoint version
+  - 6 real-time KPIs with color-coded cards
+  - 3 interactive Chart.js visualizations
+  - Detailed loss analysis table
+- **Added**: Complete SharePoint deployment documentation (850+ lines)
+- **Added**: Professional README.md with project structure
+- **Improved**: Documentation organized in `/docs/` folder
+- **Changed**: File naming convention for clarity:
+  - `sistema-npt-local-2025-12.html` (localStorage)
+  - `sistema-npt-sharepoint-2025-12.html` (SharePoint + Reports)
+- **Published**: GitHub repository at https://github.com/romariobc/npt
+- **Fixed**: Git configuration with proper .gitignore
+
+### v2025.08 (August 2025) - Legacy
+- Initial version with simplified flow
+- Basic localStorage implementation
+- Deprecated in favor of v2025.12
+
+---
+
+## Development Roadmap
+
+### ✅ Completed
+- [x] Full workflow implementation (4 stages)
+- [x] SharePoint integration
+- [x] Reports and dashboards
+- [x] Chart.js visualizations
+- [x] Complete documentation
+- [x] GitHub repository
+- [x] Deployment guides
+
+### 🔄 In Progress
+- [ ] Entra ID authentication (production)
+- [ ] PDF export for reports
+- [ ] Power Automate notifications
+
+### 📋 Planned
+- [ ] Power BI integration
+- [ ] Custom REST API
+- [ ] PWA (Progressive Web App)
+- [ ] Mobile-specific interface
+- [ ] Advanced analytics (predictive models)
+
+---
+
+## Support and Contact
+
+**For Development Questions**:
+- Check this CLAUDE.md file first
+- Review documentation in `/docs/` folder
+- Check GitHub Issues: https://github.com/romariobc/npt/issues
+
+**For Deployment Support**:
+- Follow [SHAREPOINT-DEPLOYMENT.md](docs/SHAREPOINT-DEPLOYMENT.md)
+- Contact IT department for Entra ID configuration
+
+**For Clinical/Operational Questions**:
+- Email: fscmhuwc@gmail.com
+- Hospital Universitário Walter Cantídio
+
+---
+
+**Document Version**: 1.1
+**Last Review**: December 25, 2025
+**Next Review**: March 2026
