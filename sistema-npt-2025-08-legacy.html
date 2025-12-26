@@ -1,0 +1,994 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Sistema NPT - Recebimento e Dispensa</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  
+  <!-- Fallback CSS caso o Bootstrap não carregue -->
+  <style>
+    /* Reset básico */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      line-height: 1.6;
+      color: #333;
+      background-color: #f8f9fa;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    
+    /* Títulos */
+    h1 {
+      text-align: center;
+      margin-bottom: 30px;
+      color: #2c3e50;
+      font-size: 2.2rem;
+    }
+    
+    /* Tabs */
+    .nav-tabs {
+      display: flex;
+      list-style: none;
+      border-bottom: 2px solid #dee2e6;
+      margin-bottom: 20px;
+    }
+    
+    .nav-item {
+      margin-right: 5px;
+    }
+    
+    .nav-link {
+      display: block;
+      padding: 12px 20px;
+      text-decoration: none;
+      color: #6c757d;
+      background-color: #f8f9fa;
+      border: 1px solid #dee2e6;
+      border-bottom: none;
+      border-radius: 8px 8px 0 0;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .nav-link:hover {
+      background-color: #e9ecef;
+      color: #495057;
+    }
+    
+    .nav-link.active {
+      background-color: white;
+      color: #0d6efd;
+      border-color: #dee2e6 #dee2e6 white;
+      font-weight: 600;
+    }
+    
+    /* Tab content */
+    .tab-pane {
+      display: none;
+      background: white;
+      padding: 25px;
+      border-radius: 0 8px 8px 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    
+    .tab-pane.active {
+      display: block;
+    }
+    
+    /* Forms */
+    .form-control {
+      width: 100%;
+      padding: 12px 15px;
+      margin-bottom: 15px;
+      border: 2px solid #e9ecef;
+      border-radius: 6px;
+      font-size: 16px;
+      transition: border-color 0.3s ease;
+    }
+    
+    .form-control:focus {
+      outline: none;
+      border-color: #0d6efd;
+      box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.1);
+    }
+    
+    .form-control[readonly] {
+      background-color: #f8f9fa;
+      color: #6c757d;
+    }
+    
+    /* Buttons */
+    .btn {
+      display: inline-block;
+      padding: 12px 24px;
+      margin: 5px 5px 5px 0;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      font-weight: 500;
+      text-decoration: none;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .btn-primary {
+      background-color: #0d6efd;
+      color: white;
+    }
+    
+    .btn-primary:hover {
+      background-color: #0b5ed7;
+      transform: translateY(-1px);
+    }
+    
+    .btn-success {
+      background-color: #198754;
+      color: white;
+    }
+    
+    .btn-success:hover {
+      background-color: #157347;
+      transform: translateY(-1px);
+    }
+    
+    .btn-outline-primary {
+      background-color: transparent;
+      color: #0d6efd;
+      border: 2px solid #0d6efd;
+    }
+    
+    .btn-outline-primary:hover {
+      background-color: #0d6efd;
+      color: white;
+    }
+    
+    .btn-outline-danger {
+      background-color: transparent;
+      color: #dc3545;
+      border: 2px solid #dc3545;
+    }
+    
+    .btn-outline-danger:hover {
+      background-color: #dc3545;
+      color: white;
+    }
+    
+    .btn-secondary {
+      background-color: #6c757d;
+      color: white;
+    }
+    
+    .btn-secondary:hover {
+      background-color: #5a6268;
+    }
+    
+    .me-2 {
+      margin-right: 10px;
+    }
+    
+    /* Table */
+    .table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    
+    .table th,
+    .table td {
+      padding: 12px 15px;
+      text-align: left;
+      border-bottom: 1px solid #dee2e6;
+    }
+    
+    .table th {
+      background-color: #f8f9fa;
+      font-weight: 600;
+      color: #495057;
+    }
+    
+    .table tbody tr:hover {
+      background-color: #f8f9fa;
+    }
+    
+    .table-bordered {
+      border: 1px solid #dee2e6;
+    }
+    
+    .table-bordered th,
+    .table-bordered td {
+      border: 1px solid #dee2e6;
+    }
+    
+    /* Modal */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.5);
+      z-index: 1000;
+    }
+    
+    .modal.show {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .modal-dialog {
+      background: white;
+      border-radius: 8px;
+      width: 90%;
+      max-width: 400px;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+    
+    .modal-content {
+      width: 100%;
+    }
+    
+    .modal-header {
+      padding: 20px 25px 15px;
+      border-bottom: 1px solid #dee2e6;
+    }
+    
+    .modal-title {
+      margin: 0;
+      font-size: 1.25rem;
+      font-weight: 600;
+    }
+    
+    .modal-body {
+      padding: 20px 25px;
+    }
+    
+    .modal-footer {
+      padding: 15px 25px 20px;
+      border-top: 1px solid #dee2e6;
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+    
+    /* Utility classes */
+    .text-center {
+      text-align: center;
+    }
+    
+    .text-danger {
+      color: #dc3545;
+    }
+    
+    .small {
+      font-size: 0.875rem;
+    }
+    
+    .mb-2 {
+      margin-bottom: 10px;
+    }
+    
+    .mb-3 {
+      margin-bottom: 20px;
+    }
+    
+    .mb-4 {
+      margin-bottom: 30px;
+    }
+    
+    .py-4 {
+      padding-top: 30px;
+      padding-bottom: 30px;
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+      .container {
+        padding: 10px;
+      }
+      
+      h1 {
+        font-size: 1.8rem;
+      }
+      
+      .nav-link {
+        padding: 10px 15px;
+        font-size: 14px;
+      }
+      
+      .btn {
+        padding: 10px 20px;
+        font-size: 14px;
+      }
+      
+      .table {
+        font-size: 14px;
+      }
+      
+      .table th,
+      .table td {
+        padding: 8px 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container py-4">
+    <h1 class="mb-4 text-center">📦 Sistema NPT — Recebimento &amp; Dispensa</h1>
+
+    <ul class="nav nav-tabs mb-3" id="mainTabs">
+      <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tabRecebimento">Recebimento</button></li>
+      <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabDispensa">Dispensa</button></li>
+      <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabHistorico">Histórico</button></li>
+    </ul>
+
+    <div class="tab-content">
+      <!-- RECEBIMENTO -->
+      <div class="tab-pane fade show active" id="tabRecebimento">
+        <form id="formRecebimento">
+          <input id="loteRecebimento" class="form-control mb-2" placeholder="Número do Lote" required />
+          <input id="paciente" class="form-control mb-2" placeholder="Nome do Paciente" required />
+          <input id="prontuario" class="form-control mb-2" placeholder="Prontuário" required />
+          <input id="leito" class="form-control mb-2" placeholder="Leito" required />
+          <select id="temperatura" class="form-control mb-2" required>
+            <option value="">Temperatura OK?</option>
+            <option value="Sim">Sim</option>
+            <option value="Não">Não</option>
+          </select>
+          <textarea id="observacoes" class="form-control mb-2" placeholder="Observações"></textarea>
+          <button type="submit" class="btn btn-primary">Salvar Recebimento</button>
+        </form>
+      </div>
+
+      <!-- DISPENSA -->
+      <div class="tab-pane fade" id="tabDispensa">
+        <form id="formDispensa">
+          <input id="loteDispensa" class="form-control mb-2" placeholder="Lote da Bolsa" required />
+          <input id="pacienteDispensa" class="form-control mb-2" placeholder="Paciente (auto)" readonly />
+          <input id="leitoDispensa" class="form-control mb-2" placeholder="Leito (auto)" readonly />
+          <input id="entregou" class="form-control mb-2" placeholder="Quem Entregou" required />
+          <input id="recebeu" class="form-control mb-2" placeholder="Quem Recebeu" required />
+          <button type="submit" class="btn btn-success">Salvar Dispensa</button>
+        </form>
+      </div>
+
+      <!-- HISTÓRICO -->
+      <div class="tab-pane fade" id="tabHistorico">
+        <div class="mb-3">
+          <button id="btnExportarCSV" class="btn btn-outline-primary me-2">📊 Exportar CSV</button>
+          <button id="btnExportarPDF" class="btn btn-outline-danger">📄 Exportar PDF</button>
+        </div>
+        <table class="table table-bordered">
+          <thead>
+            <tr>
+              <th>Data/Hora</th>
+              <th>Tipo</th>
+              <th>Paciente</th>
+              <th>Lote</th>
+              <th>Detalhes</th>
+              <th>Usuário</th>
+            </tr>
+          </thead>
+          <tbody id="tabelaHistoricoBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Autenticação -->
+  <div class="modal fade" id="modalLogin" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-body"
+        <div class="modal-header"><h5 class="modal-title">Autenticação</h5></div>
+        <div class="modal-body">
+          <input id="loginUsuario" class="form-control mb-2" placeholder="Usuário" autocomplete="username" />
+          <input id="loginSenha" type="password" class="form-control mb-2" placeholder="Senha" autocomplete="current-password" />
+          <div id="loginErro" class="text-danger small" style="display:none;">Usuário ou senha inválidos</div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="button" id="btnConfirmarLogin" class="btn btn-primary">Confirmar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+  <script>
+    // Variáveis globais
+    let usuarios = {};
+    let acaoPendente = null;
+    let dadosPendentes = null;
+    let usuarioLogado = null;
+    let registros = [];
+    let modalLogin = null;
+
+    // Fallback para funcionalidade de tabs caso Bootstrap não carregue
+    function initializeTabs() {
+      const tabButtons = document.querySelectorAll('[data-bs-toggle="tab"]');
+      const tabPanes = document.querySelectorAll('.tab-pane');
+      
+      if (typeof bootstrap === 'undefined') {
+        console.log('🔄 Bootstrap não disponível, usando implementação manual de tabs');
+        
+        tabButtons.forEach(function(button) {
+          button.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            // Remove active de todos os botões e panes
+            tabButtons.forEach(function(btn) {
+              btn.classList.remove('active');
+            });
+            tabPanes.forEach(function(pane) {
+              pane.classList.remove('show', 'active');
+            });
+            
+            // Adiciona active ao botão clicado
+            this.classList.add('active');
+            
+            // Mostra o pane correspondente
+            const targetId = this.getAttribute('data-bs-target');
+            const targetPane = document.querySelector(targetId);
+            if (targetPane) {
+              targetPane.classList.add('show', 'active');
+            }
+          });
+        });
+        
+        // Ativa a primeira tab por padrão
+        if (tabButtons.length > 0) {
+          tabButtons[0].classList.add('active');
+          const firstTargetId = tabButtons[0].getAttribute('data-bs-target');
+          const firstPane = document.querySelector(firstTargetId);
+          if (firstPane) {
+            firstPane.classList.add('show', 'active');
+          }
+        }
+      }
+    }
+
+    // Modal fallback
+    function initializeModal() {
+      const modalElement = document.getElementById('modalLogin');
+      
+      if (typeof bootstrap === 'undefined') {
+        console.log('🔄 Bootstrap não disponível, usando implementação manual de modal');
+        
+        window.showModal = function() {
+          modalElement.classList.add('show');
+          modalElement.style.display = 'flex';
+          document.body.style.overflow = 'hidden';
+        };
+        
+        window.hideModal = function() {
+          modalElement.classList.remove('show');
+          modalElement.style.display = 'none';
+          document.body.style.overflow = '';
+        };
+        
+        // Fechar modal clicando fora
+        modalElement.addEventListener('click', function(e) {
+          if (e.target === modalElement) {
+            hideModal();
+          }
+        });
+        
+        // Fechar modal com botão cancelar
+        const cancelButton = modalElement.querySelector('[data-bs-dismiss="modal"]');
+        if (cancelButton) {
+          cancelButton.addEventListener('click', hideModal);
+        }
+      }
+    }
+
+    // Carrega arquivo externo usuarios.json
+    function carregarUsuarios() {
+      fetch('usuarios.json')
+        .then(function(res) {
+          if (!res.ok) throw new Error('HTTP ' + res.status + ': Arquivo usuarios.json não encontrado');
+          return res.json();
+        })
+        .then(function(data) {
+          usuarios = data;
+          console.log('✅ Usuários carregados do arquivo:', Object.keys(usuarios));
+        })
+        .catch(function(err) {
+          console.warn('⚠️ Não foi possível carregar usuarios.json:', err.message);
+          console.log('🔄 Usando configuração de usuários padrão');
+          // Fallback com usuários padrão
+          usuarios = {
+            admin: '12345',
+            tecnico1: 'senha1',
+            tecnico2: 'senha2',
+            farmacia: 'farm123',
+            supervisor: 'super456',
+            teste: '123'
+          };
+          console.log('✅ Usuários padrão carregados:', Object.keys(usuarios));
+        });
+    }
+
+    function pedirLogin(acao, dados) {
+      acaoPendente = acao;
+      dadosPendentes = dados || null;
+      document.getElementById('loginUsuario').value = '';
+      document.getElementById('loginSenha').value = '';
+      document.getElementById('loginErro').style.display = 'none';
+      
+      // Verifica se o modal foi inicializado
+      if (modalLogin && modalLogin.show) {
+        modalLogin.show();
+      } else if (window.showModal) {
+        showModal();
+      } else {
+        console.error('❌ Modal não inicializado');
+        // Fallback: usar prompt nativo
+        const user = prompt('Usuário:');
+        const pass = prompt('Senha:');
+        if (user && usuarios[user] && usuarios[user] === pass) {
+          usuarioLogado = user;
+          executarAcaoPendente();
+        } else {
+          alert('Usuário ou senha inválidos');
+        }
+      }
+    }
+
+    function salvarLocalStorage() {
+      try {
+        localStorage.setItem('registrosNPT', JSON.stringify(registros));
+        console.log('✅ Dados salvos no localStorage:', registros.length, 'registros');
+      } catch (error) {
+        console.error('❌ Erro ao salvar no localStorage:', error.message);
+        alert('Erro ao salvar dados localmente. Suas alterações podem não ser preservadas.');
+      }
+    }
+
+    function atualizarHistorico() {
+      const tbody = document.getElementById('tabelaHistoricoBody');
+      tbody.innerHTML = '';
+      registros.forEach(function(r) {
+        const tr = document.createElement('tr');
+        tr.innerHTML = 
+          '<td>' + (r.dataHora || '-') + '</td>' +
+          '<td>' + (r.tipo || '-') + '</td>' +
+          '<td>' + (r.paciente || '-') + '</td>' +
+          '<td>' + (r.lote || '-') + '</td>' +
+          '<td>' + (r.detalhes || '-') + '</td>' +
+          '<td>' + (r.usuario || '-') + '</td>';
+        tbody.appendChild(tr);
+      });
+    }
+
+    function executarAcaoPendente() {
+      const agora = new Date().toLocaleString();
+      console.log('🔄 Executando ação:', acaoPendente, 'por usuário:', usuarioLogado);
+
+      if (acaoPendente === 'recebimento' && dadosPendentes) {
+        const novoRegistro = {
+          tipo: 'Recebimento',
+          lote: dadosPendentes.loteRecebimento,
+          paciente: dadosPendentes.paciente,
+          prontuario: dadosPendentes.prontuario,
+          leito: dadosPendentes.leito,
+          temperatura: dadosPendentes.temperatura,
+          observacoes: dadosPendentes.observacoes,
+          dataHora: agora,
+          usuario: usuarioLogado,
+          detalhes: 'Leito: ' + dadosPendentes.leito + '; Temperatura: ' + dadosPendentes.temperatura
+        };
+        registros.push(novoRegistro);
+        console.log('✅ Recebimento registrado:', novoRegistro);
+        salvarLocalStorage();
+        atualizarHistorico();
+        alert('Recebimento salvo por ' + usuarioLogado);
+      }
+
+      if (acaoPendente === 'dispensa' && dadosPendentes) {
+        const lote = dadosPendentes.loteDispensa;
+        // Tenta achar recebimento pelo lote
+        const receb = registros.find(function(r) {
+          return r.tipo === 'Recebimento' && r.lote === lote;
+        });
+        console.log('🔍 Buscando recebimento para lote:', lote, receb ? 'encontrado' : 'não encontrado');
+        
+        const novoRegistro = {
+          tipo: 'Dispensa',
+          lote: lote,
+          paciente: receb ? receb.paciente : 'Não encontrado',
+          leito: receb ? receb.leito : 'Não encontrado',
+          dataHora: agora,
+          usuario: usuarioLogado,
+          detalhes: 'Entregou: ' + dadosPendentes.entregou + '; Recebeu: ' + dadosPendentes.recebeu
+        };
+        registros.push(novoRegistro);
+        console.log('✅ Dispensa registrada:', novoRegistro);
+        salvarLocalStorage();
+        atualizarHistorico();
+        alert('Dispensa salva por ' + usuarioLogado);
+      }
+
+      acaoPendente = null;
+      dadosPendentes = null;
+    }
+
+    // Função para gerar PDF
+    function gerarPDF() {
+      console.log('📄 Iniciando geração de PDF...');
+      
+      // Verifica se há registros
+      if (registros.length === 0) {
+        console.warn('⚠️ Nenhum registro encontrado para exportar');
+        alert('Não há registros para exportar!');
+        return;
+      }
+
+      console.log('📊 Gerando PDF com', registros.length, 'registros');
+
+      // Verifica se jsPDF está disponível
+      if (typeof window.jspdf === 'undefined') {
+        console.error('❌ jsPDF não está carregado');
+        alert('Biblioteca de PDF não carregada. Tente novamente.');
+        return;
+      }
+
+      try {
+        const jsPDF = window.jspdf.jsPDF;
+        console.log('✅ jsPDF disponível, criando documento...');
+        
+        // Criar documento em modo paisagem para mais espaço
+        const doc = new jsPDF({ orientation: 'landscape' });
+        const pageWidth = doc.internal.pageSize.width;
+        const pageHeight = doc.internal.pageSize.height;
+        const margin = 14;
+        const usableWidth = pageWidth - (margin * 2);
+        
+        console.log('📋 Configurações da página:', { pageWidth: pageWidth, pageHeight: pageHeight, usableWidth: usableWidth });
+        
+        // Configurar larguras das colunas otimizadas para paisagem
+        const columnWidths = {
+          dataHora: 0.15,    // 15%
+          tipo: 0.10,        // 10%
+          paciente: 0.18,    // 18%
+          lote: 0.10,        // 10%
+          detalhes: 0.35,    // 35% (maior espaço)
+          usuario: 0.12      // 12%
+        };
+        
+        // Calcular posições das colunas
+        const columns = [];
+        let currentX = margin;
+        const widthValues = [columnWidths.dataHora, columnWidths.tipo, columnWidths.paciente, columnWidths.lote, columnWidths.detalhes, columnWidths.usuario];
+        widthValues.forEach(function(width) {
+          columns.push({
+            x: currentX,
+            width: usableWidth * width
+          });
+          currentX += usableWidth * width;
+        });
+        
+        console.log('📏 Colunas configuradas:', columns.length, 'colunas');
+        
+        // Função para truncar texto
+        function truncateText(text, maxWidth, fontSize) {
+          fontSize = fontSize || 10;
+          doc.setFontSize(fontSize);
+          if (doc.getTextWidth(text) <= maxWidth) {
+            return text;
+          }
+          
+          let truncated = text;
+          while (doc.getTextWidth(truncated + '...') > maxWidth && truncated.length > 0) {
+            truncated = truncated.slice(0, -1);
+          }
+          return truncated + (truncated.length < text.length ? '...' : '');
+        }
+        
+        // Título principal
+        doc.setFontSize(16);
+        doc.setFont(undefined, 'bold');
+        doc.text('📦 Sistema NPT - Histórico de Recebimento & Dispensa', margin, 20);
+        
+        // Informações do relatório
+        doc.setFontSize(10);
+        doc.setFont(undefined, 'normal');
+        doc.text('Gerado em: ' + new Date().toLocaleString('pt-BR'), margin, 28);
+        doc.text('Total de registros: ' + registros.length, margin, 35);
+        
+        // Cabeçalho da tabela
+        const headerY = 45;
+        doc.setFontSize(10);
+        doc.setFont(undefined, 'bold');
+        
+        const headers = ['Data/Hora', 'Tipo', 'Paciente', 'Lote', 'Detalhes', 'Usuário'];
+        
+        // Fundo do cabeçalho
+        doc.setFillColor(240, 240, 240);
+        doc.rect(margin, headerY - 5, usableWidth, 8, 'F');
+        
+        // Texto do cabeçalho
+        doc.setTextColor(0, 0, 0);
+        headers.forEach(function(header, i) {
+          const truncatedHeader = truncateText(header, columns[i].width, 10);
+          doc.text(truncatedHeader, columns[i].x + 1, headerY);
+        });
+        
+        // Linha separadora
+        doc.setDrawColor(0, 0, 0);
+        doc.line(margin, headerY + 2, margin + usableWidth, headerY + 2);
+        
+        console.log('📝 Cabeçalho criado, processando registros...');
+        
+        // Dados da tabela
+        doc.setFont(undefined, 'normal');
+        let currentY = headerY + 10;
+        const rowHeight = 8;
+        const maxRowsPerPage = Math.floor((pageHeight - currentY - 20) / rowHeight);
+        
+        console.log('📄 Máximo de linhas por página:', maxRowsPerPage);
+        
+        registros.forEach(function(registro, index) {
+          // Verificar se precisa de nova página
+          if (index > 0 && index % maxRowsPerPage === 0) {
+            console.log('📄 Adicionando nova página na linha', index);
+            doc.addPage();
+            currentY = 20;
+            
+            // Repetir cabeçalho na nova página
+            doc.setFont(undefined, 'bold');
+            doc.setFillColor(240, 240, 240);
+            doc.rect(margin, currentY - 5, usableWidth, 8, 'F');
+            
+            headers.forEach(function(header, i) {
+              const truncatedHeader = truncateText(header, columns[i].width, 10);
+              doc.text(truncatedHeader, columns[i].x + 1, currentY);
+            });
+            
+            doc.line(margin, currentY + 2, margin + usableWidth, currentY + 2);
+            doc.setFont(undefined, 'normal');
+            currentY += 10;
+          }
+          
+          // Preparar dados da linha
+          const detalhesLimpos = (registro.detalhes || '')
+            .replace(/\t/g, ' ')
+            .replace(/\n/g, ' ')
+            .replace(/\s+/g, ' ')
+            .replace(/^\s+|\s+$/g, ''); // trim manual
+          
+          const rowData = [
+            registro.dataHora || '',
+            registro.tipo || '',
+            registro.paciente || '',
+            registro.lote || '',
+            detalhesLimpos,
+            registro.usuario || ''
+          ];
+          
+          // Alternância de cores nas linhas
+          if (index % 2 === 0) {
+            doc.setFillColor(250, 250, 250);
+            doc.rect(margin, currentY - 4, usableWidth, rowHeight - 1, 'F');
+          }
+          
+          // Desenhar dados da linha
+          rowData.forEach(function(data, i) {
+            const truncatedData = truncateText(String(data), columns[i].width - 2, 9);
+            doc.setFontSize(9);
+            doc.text(truncatedData, columns[i].x + 1, currentY);
+          });
+          
+          // Linhas de separação verticais
+          doc.setDrawColor(200, 200, 200);
+          columns.forEach(function(col, i) {
+            if (i > 0) {
+              doc.line(col.x, currentY - 4, col.x, currentY + 3);
+            }
+          });
+          
+          currentY += rowHeight;
+        });
+        
+        // Rodapé com numeração de páginas
+        const totalPages = doc.internal.getNumberOfPages();
+        console.log('📄 Total de páginas criadas:', totalPages);
+        
+        for (let i = 1; i <= totalPages; i++) {
+          doc.setPage(i);
+          doc.setFontSize(8);
+          doc.setFont(undefined, 'normal');
+          doc.text('Página ' + i + ' de ' + totalPages, pageWidth - 30, pageHeight - 10);
+        }
+        
+        // Salvar arquivo
+        const dataAtual = new Date().toISOString().split('T')[0];
+        const nomeArquivo = 'npt_historico_' + dataAtual + '.pdf';
+        doc.save(nomeArquivo);
+        
+        console.log('✅ PDF gerado com sucesso:', nomeArquivo);
+        
+      } catch (error) {
+        console.error('❌ Erro ao gerar PDF:', error);
+        alert('Erro ao gerar PDF: ' + error.message);
+      }
+    }
+
+    // Aguarda o carregamento completo do DOM
+    document.addEventListener('DOMContentLoaded', function() {
+      console.log('🚀 Inicializando sistema NPT...');
+      
+      // Inicializar tabs e modal (com ou sem Bootstrap)
+      initializeTabs();
+      initializeModal();
+      
+      if (typeof bootstrap !== 'undefined') {
+        modalLogin = new bootstrap.Modal(document.getElementById('modalLogin'));
+        console.log('✅ Modal Bootstrap inicializado');
+      } else {
+        console.log('✅ Modal manual inicializado');
+        modalLogin = {
+          show: function() { showModal(); },
+          hide: function() { hideModal(); }
+        };
+      }
+      
+      // Carregar usuários
+      carregarUsuarios();
+      
+      // Carrega registros do localStorage
+      try {
+        const registrosSalvos = localStorage.getItem('registrosNPT');
+        if (registrosSalvos) {
+          registros = JSON.parse(registrosSalvos);
+          console.log('📋 Registros carregados do localStorage:', registros.length, 'itens');
+        } else {
+          console.log('📋 Nenhum registro salvo encontrado');
+        }
+      } catch (error) {
+        console.error('❌ Erro ao carregar registros do localStorage:', error);
+        registros = [];
+      }
+      
+      atualizarHistorico();
+      
+      // Event listeners para formulários
+      document.getElementById('formRecebimento').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const dados = {
+          loteRecebimento: document.getElementById('loteRecebimento').value.replace(/^\s+|\s+$/g, ''),
+          paciente: document.getElementById('paciente').value.replace(/^\s+|\s+$/g, ''),
+          prontuario: document.getElementById('prontuario').value.replace(/^\s+|\s+$/g, ''),
+          leito: document.getElementById('leito').value.replace(/^\s+|\s+$/g, ''),
+          temperatura: document.getElementById('temperatura').value,
+          observacoes: document.getElementById('observacoes').value.replace(/^\s+|\s+$/g, '')
+        };
+        if (!dados.loteRecebimento) {
+          alert('Preencha o número do lote.');
+          return;
+        }
+        pedirLogin('recebimento', dados);
+      });
+
+      document.getElementById('loteDispensa').addEventListener('blur', function() {
+        const lote = document.getElementById('loteDispensa').value.replace(/^\s+|\s+$/g, '');
+        const receb = registros.find(function(r) {
+          return r.tipo === 'Recebimento' && r.lote === lote;
+        });
+        if (receb) {
+          document.getElementById('pacienteDispensa').value = receb.paciente;
+          document.getElementById('leitoDispensa').value = receb.leito;
+        } else {
+          document.getElementById('pacienteDispensa').value = '';
+          document.getElementById('leitoDispensa').value = '';
+        }
+      });
+
+      document.getElementById('formDispensa').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const dados = {
+          loteDispensa: document.getElementById('loteDispensa').value.replace(/^\s+|\s+$/g, ''),
+          entregou: document.getElementById('entregou').value.replace(/^\s+|\s+$/g, ''),
+          recebeu: document.getElementById('recebeu').value.replace(/^\s+|\s+$/g, '')
+        };
+        if (!dados.loteDispensa) {
+          alert('Preencha o lote da bolsa.');
+          return;
+        }
+        pedirLogin('dispensa', dados);
+      });
+
+      // Botão de confirmação do login
+      document.getElementById('btnConfirmarLogin').addEventListener('click', function() {
+        const user = document.getElementById('loginUsuario').value.replace(/^\s+|\s+$/g, '');
+        const pass = document.getElementById('loginSenha').value.replace(/^\s+|\s+$/g, '');
+        if (user && usuarios[user] && usuarios[user] === pass) {
+          usuarioLogado = user;
+          document.getElementById('loginErro').style.display = 'none';
+          if (modalLogin && modalLogin.hide) {
+            modalLogin.hide();
+          } else if (window.hideModal) {
+            hideModal();
+          }
+          executarAcaoPendente();
+        } else {
+          document.getElementById('loginErro').style.display = 'block';
+        }
+      });
+
+      // Exportação CSV do histórico
+      document.getElementById('btnExportarCSV').addEventListener('click', function() {
+        const header = ['Data/Hora', 'Tipo', 'Paciente', 'Lote', 'Detalhes', 'Usuário'];
+        const linhas = registros.map(function(r) {
+          const detalhes = (r.detalhes || '').replace(/\t/g, ' ').replace(/\n/g, ' ');
+          return [
+            r.dataHora,
+            r.tipo,
+            r.paciente,
+            r.lote,
+            detalhes,
+            r.usuario
+          ].map(function(campo) {
+            return '"' + campo + '"';
+          }).join(',');
+        });
+        const csvContent = [header.join(',')].concat(linhas).join('\r\n');
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = 'npt_historico_' + new Date().toISOString().split('T')[0] + '.csv';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      });
+
+      // Event listener para exportação PDF
+      document.getElementById('btnExportarPDF').addEventListener('click', function() {
+        console.log('🖱️ Botão Exportar PDF clicado');
+        
+        // Carrega jsPDF dinamicamente se necessário
+        if (typeof window.jspdf === 'undefined') {
+          console.log('📦 Carregando biblioteca jsPDF...');
+          
+          const script = document.createElement('script');
+          script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+          
+          script.onload = function() {
+            console.log('✅ jsPDF carregado com sucesso');
+            setTimeout(gerarPDF, 100); // Pequeno delay para garantir que a biblioteca foi inicializada
+          };
+          
+          script.onerror = function() {
+            console.error('❌ Erro ao carregar jsPDF');
+            alert('Erro ao carregar a biblioteca de geração de PDF. Verifique sua conexão com a internet.');
+          };
+          
+          document.body.appendChild(script);
+        } else {
+          console.log('✅ jsPDF já está carregado');
+          gerarPDF();
+        }
+      });
+      
+      console.log('✅ Sistema NPT inicializado com sucesso');
+    });
+  </script>
+</body>
+</html>

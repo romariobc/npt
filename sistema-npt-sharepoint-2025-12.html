@@ -1,0 +1,1578 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Sistema NPT HUWC - SharePoint Edition</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background-color: #f8f9fa;
+    }
+
+    .container {
+      max-width: 1400px;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 30px;
+      color: #2c3e50;
+    }
+
+    .alert-info-custom {
+      background-color: #e7f3ff;
+      border-left: 4px solid #0d6efd;
+      padding: 15px;
+      margin-bottom: 20px;
+      border-radius: 4px;
+    }
+
+    .alert-warning-custom {
+      background-color: #fff3cd;
+      border-left: 4px solid #ffc107;
+      padding: 15px;
+      margin-bottom: 20px;
+      border-radius: 4px;
+    }
+
+    .form-label {
+      font-weight: 600;
+      margin-bottom: 5px;
+    }
+
+    .badge-status {
+      font-size: 0.85rem;
+      padding: 5px 10px;
+    }
+
+    .readonly-highlight {
+      background-color: #e9ecef !important;
+      cursor: not-allowed;
+    }
+
+    .card-header {
+      background-color: #f8f9fa;
+      border-bottom: 2px solid #dee2e6;
+      font-weight: 600;
+    }
+
+    .btn-group-custom {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    table {
+      font-size: 0.9rem;
+    }
+
+    .table-hover tbody tr:hover {
+      background-color: #f1f3f5;
+    }
+
+    .status-aguardando { background-color: #fff3cd; color: #856404; }
+    .status-recebida { background-color: #d1ecf1; color: #0c5460; }
+    .status-dispensada { background-color: #d4edda; color: #155724; }
+    .status-devolvida { background-color: #f8d7da; color: #721c24; }
+    .status-conforme { background-color: #d4edda; color: #155724; }
+    .status-inconsistente { background-color: #f8d7da; color: #721c24; }
+
+    .kpi-card {
+      border-left: 4px solid #0d6efd;
+      transition: transform 0.2s;
+    }
+
+    .kpi-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    .kpi-number {
+      font-size: 2.5rem;
+      font-weight: bold;
+      margin: 0;
+    }
+
+    .kpi-label {
+      color: #6c757d;
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .chart-container {
+      position: relative;
+      height: 300px;
+      margin-bottom: 20px;
+    }
+
+    .loading-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+    }
+
+    .loading-overlay.show {
+      display: flex;
+    }
+
+    .spinner-box {
+      background: white;
+      padding: 30px;
+      border-radius: 8px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <!-- Loading Overlay -->
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="spinner-box">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Carregando...</span>
+      </div>
+      <p class="mt-3 mb-0">Processando...</p>
+    </div>
+  </div>
+
+  <div class="container py-4">
+    <h1>📦 Sistema NPT HUWC - SharePoint Edition</h1>
+    <p class="text-center text-muted mb-2">Fluxo: Prescrição → Recebimento → Dispensação | Vigência: 02/12/2025</p>
+    <p class="text-center">
+      <span class="badge bg-success" id="statusConexao">● SharePoint Conectado</span>
+    </p>
+
+    <!-- Alerta de Modo Desenvolvimento -->
+    <div class="alert alert-warning alert-dismissible fade show" role="alert" id="alertDesenvolvimento" style="display: none;">
+      <strong>⚠️ MODO DESENVOLVIMENTO</strong><br>
+      Autenticação simulada ativa. Este modo é apenas para testes.<br>
+      <small>Para produção, configure autenticação Entra ID conforme orientação da TI.</small>
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <ul class="nav nav-tabs mb-3" id="mainTabs" role="tablist">
+      <li class="nav-item">
+        <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tabPrescricao">1. Prescrição</button>
+      </li>
+      <li class="nav-item">
+        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabRecebimento">2. Recebimento Bolsa</button>
+      </li>
+      <li class="nav-item">
+        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabDispensa">3. Dispensação</button>
+      </li>
+      <li class="nav-item">
+        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabPerdas">❌ Perdas/Devoluções</button>
+      </li>
+      <li class="nav-item">
+        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabHistorico">📊 Histórico</button>
+      </li>
+      <li class="nav-item">
+        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabRelatorios">📈 Relatórios</button>
+      </li>
+    </ul>
+
+    <div class="tab-content">
+      <!-- ABA 1: PRESCRIÇÃO -->
+      <div class="tab-pane fade show active" id="tabPrescricao">
+        <div class="card">
+          <div class="card-header">
+            📝 Registro de Prescrição Médica
+          </div>
+          <div class="card-body">
+            <div class="alert-info-custom mb-3">
+              <strong>📧 Fluxo:</strong> Prescrição recebida por email (fscmhuwc@gmail.com) → Encaminhar para Pronutrir → Imprimir 2 vias (Via 1: arquivo, Via 2: conferência)
+            </div>
+
+            <form id="formPrescricao">
+              <div class="row">
+                <div class="col-md-4 mb-3">
+                  <label class="form-label">ID Prescrição *</label>
+                  <input type="text" class="form-control readonly-highlight" id="idPrescricao" readonly />
+                  <small class="text-muted">Gerado automaticamente</small>
+                </div>
+
+                <div class="col-md-4 mb-3">
+                  <label class="form-label">Paciente *</label>
+                  <input type="text" class="form-control" id="prescPaciente" required />
+                </div>
+
+                <div class="col-md-4 mb-3">
+                  <label class="form-label">Prontuário *</label>
+                  <input type="text" class="form-control" id="prescProntuario" required />
+                </div>
+
+                <div class="col-md-4 mb-3">
+                  <label class="form-label">Leito *</label>
+                  <input type="text" class="form-control" id="prescLeito" required />
+                </div>
+
+                <div class="col-md-4 mb-3">
+                  <label class="form-label">Vazão (ex: 50 mL/h) *</label>
+                  <input type="text" class="form-control" id="prescVazao" required />
+                </div>
+
+                <div class="col-md-4 mb-3">
+                  <label class="form-label">Volume Total (ex: 1200 mL) *</label>
+                  <input type="text" class="form-control" id="prescVolume" required />
+                </div>
+
+                <div class="col-12 mb-3">
+                  <label class="form-label">Composição</label>
+                  <textarea class="form-control" id="prescComposicao" rows="2" placeholder="Detalhes da composição..."></textarea>
+                </div>
+
+                <div class="col-12 mb-3">
+                  <label class="form-label">Observações</label>
+                  <textarea class="form-control" id="prescObservacoes" rows="2" placeholder="Observações adicionais..."></textarea>
+                </div>
+              </div>
+
+              <button type="submit" class="btn btn-primary">💾 Salvar Prescrição</button>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- ABA 2: RECEBIMENTO -->
+      <div class="tab-pane fade" id="tabRecebimento">
+        <div class="card">
+          <div class="card-header">
+            📦 Recebimento de Bolsa da Pronutrir
+          </div>
+          <div class="card-body">
+            <div class="alert-info-custom mb-3">
+              <strong>⏰ Período:</strong> Tarde<br>
+              <strong>✅ Verificar:</strong> Etiqueta, nome do paciente, leito, vazão, temperatura, integridade<br>
+              <strong>⚠️ Se inconsistente:</strong> Devolver imediatamente + registrar ocorrência
+            </div>
+
+            <form id="formRecebimento">
+              <div class="row">
+                <div class="col-md-6 mb-3">
+                  <label class="form-label">Selecionar Prescrição *</label>
+                  <select class="form-select" id="recebIdPrescricao" required>
+                    <option value="">-- Escolha uma prescrição aguardando bolsa --</option>
+                  </select>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                  <label class="form-label">Lote Pronutrir *</label>
+                  <input type="text" class="form-control" id="recebLote" required placeholder="Número do lote da bolsa" />
+                </div>
+
+                <div class="col-md-12 mb-3">
+                  <div class="card bg-light">
+                    <div class="card-body">
+                      <strong>Dados da Prescrição:</strong><br>
+                      Paciente: <span id="recebPacienteInfo">-</span><br>
+                      Leito: <span id="recebLeitoInfo">-</span><br>
+                      Vazão: <span id="recebVazaoInfo">-</span><br>
+                      Volume: <span id="recebVolumeInfo">-</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="col-md-4 mb-3">
+                  <label class="form-label">Temperatura Adequada? *</label>
+                  <select class="form-select" id="recebTemperatura" required>
+                    <option value="Sim">Sim</option>
+                    <option value="Não">Não</option>
+                  </select>
+                </div>
+
+                <div class="col-md-4 mb-3">
+                  <label class="form-label">Integridade *</label>
+                  <select class="form-select" id="recebIntegridade" required>
+                    <option value="Íntegra">Íntegra</option>
+                    <option value="Violada">Violada</option>
+                  </select>
+                </div>
+
+                <div class="col-md-4 mb-3">
+                  <label class="form-label">Status Conferência *</label>
+                  <select class="form-select" id="recebStatus" required>
+                    <option value="Conforme">Conforme</option>
+                    <option value="Inconsistente">Inconsistente</option>
+                  </select>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                  <label class="form-label">Conferente (Farmacêutico ou Técnico) *</label>
+                  <input type="text" class="form-control" id="recebConferente" required />
+                </div>
+
+                <div class="col-md-12 mb-3">
+                  <label class="form-label">Observações</label>
+                  <textarea class="form-control" id="recebObservacoes" rows="2" placeholder="Detalhes da conferência..."></textarea>
+                </div>
+              </div>
+
+              <button type="submit" class="btn btn-success">✅ Registrar Recebimento</button>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- ABA 3: DISPENSAÇÃO -->
+      <div class="tab-pane fade" id="tabDispensa">
+        <div class="card">
+          <div class="card-header">
+            🏥 Dispensação para Unidade
+          </div>
+          <div class="card-body">
+            <div class="alert-info-custom mb-3">
+              <strong>⏰ Horário:</strong> Noite (~21h)<br>
+              <strong>✅ Ação:</strong> Re-conferir prescrição vs bolsa → Enviar com prescrição → Registrar quem entregou/recebeu → Preencher Google Forms
+            </div>
+
+            <form id="formDispensa">
+              <div class="row">
+                <div class="col-md-6 mb-3">
+                  <label class="form-label">Selecionar Recebimento *</label>
+                  <select class="form-select" id="dispensaIdPrescricao" required>
+                    <option value="">-- Escolha um recebimento conforme --</option>
+                  </select>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                  <label class="form-label">Hora Dispensação *</label>
+                  <input type="time" class="form-control" id="dispensaHora" value="21:00" required />
+                </div>
+
+                <div class="col-md-12 mb-3">
+                  <div class="card bg-light">
+                    <div class="card-body">
+                      <strong>Dados do Recebimento:</strong><br>
+                      ID Prescrição: <span id="dispensaIdPrescInfo">-</span><br>
+                      Lote: <span id="dispensaLoteInfo">-</span><br>
+                      Paciente: <span id="dispensaPacienteInfo">-</span><br>
+                      Leito: <span id="dispensaLeitoInfo">-</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                  <label class="form-label">Quem Entregou (Farmácia) *</label>
+                  <input type="text" class="form-control" id="dispensaEntregou" required />
+                </div>
+
+                <div class="col-md-6 mb-3">
+                  <label class="form-label">Quem Recebeu (Unidade) *</label>
+                  <input type="text" class="form-control" id="dispensaRecebeu" required />
+                </div>
+
+                <div class="col-md-12 mb-3">
+                  <label class="form-label">Observações</label>
+                  <textarea class="form-control" id="dispensaObservacoes" rows="2" placeholder="Observações sobre a dispensação..."></textarea>
+                </div>
+              </div>
+
+              <button type="submit" class="btn btn-primary">📤 Registrar Dispensação</button>
+              <div class="mt-3">
+                <small class="text-muted">⚠️ Após dispensar, preencher Google Forms (indicador de bolsas dispensadas)</small>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- ABA 4: PERDAS/DEVOLUÇÕES -->
+      <div class="tab-pane fade" id="tabPerdas">
+        <div class="card">
+          <div class="card-header">
+            ❌ Registro de Perdas e Devoluções
+          </div>
+          <div class="card-body">
+            <div class="alert-info-custom mb-3">
+              <strong>📋 Motivos comuns:</strong> Temperatura inadequada, composição incorreta, volume errado, identificação incorreta, integridade comprometida, cancelamento, alta, óbito, validade vencida
+            </div>
+
+            <form id="formPerdas">
+              <div class="row">
+                <div class="col-md-6 mb-3">
+                  <label class="form-label">ID Prescrição *</label>
+                  <input type="text" class="form-control" id="perdaIdPrescricao" required placeholder="NPT-00001" />
+                </div>
+
+                <div class="col-md-6 mb-3">
+                  <label class="form-label">Tipo *</label>
+                  <select class="form-select" id="perdaTipo" required>
+                    <option value="Devolução">Devolução à Pronutrir</option>
+                    <option value="Perda">Perda</option>
+                  </select>
+                </div>
+
+                <div class="col-md-12 mb-3">
+                  <label class="form-label">Motivo *</label>
+                  <select class="form-select" id="perdaMotivo" required>
+                    <option value="">-- Selecione --</option>
+                    <option value="Temperatura inadequada">Temperatura inadequada</option>
+                    <option value="Composição incorreta">Composição incorreta</option>
+                    <option value="Volume errado">Volume errado</option>
+                    <option value="Identificação incorreta">Identificação incorreta (paciente/leito)</option>
+                    <option value="Integridade comprometida">Integridade comprometida</option>
+                    <option value="Cancelamento médico">Cancelamento médico</option>
+                    <option value="Alta do paciente">Alta do paciente</option>
+                    <option value="Óbito">Óbito</option>
+                    <option value="Validade vencida">Validade vencida</option>
+                    <option value="Outro">Outro</option>
+                  </select>
+                </div>
+
+                <div class="col-md-12 mb-3">
+                  <label class="form-label">Detalhes *</label>
+                  <textarea class="form-control" id="perdaDetalhes" rows="3" required placeholder="Descreva detalhadamente o ocorrido..."></textarea>
+                </div>
+              </div>
+
+              <button type="submit" class="btn btn-danger">❌ Registrar Perda/Devolução</button>
+              <div class="mt-3">
+                <small class="text-muted">⚠️ Após registrar, preencher Google Forms (indicador de bolsas perdidas/devolvidas)</small>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- ABA 5: HISTÓRICO -->
+      <div class="tab-pane fade" id="tabHistorico">
+        <div class="card">
+          <div class="card-header d-flex justify-content-between align-items-center">
+            <span>📊 Histórico de Registros</span>
+            <div class="btn-group-custom">
+              <button class="btn btn-sm btn-success" onclick="exportarCSV()">📥 Exportar CSV</button>
+              <button class="btn btn-sm btn-secondary" onclick="atualizarHistorico()">🔄 Atualizar</button>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="table-responsive">
+              <table class="table table-hover table-sm">
+                <thead>
+                  <tr>
+                    <th>Tipo</th>
+                    <th>ID Prescrição</th>
+                    <th>Paciente</th>
+                    <th>Leito</th>
+                    <th>Status</th>
+                    <th>Data/Hora</th>
+                    <th>Usuário</th>
+                  </tr>
+                </thead>
+                <tbody id="historicoTabela">
+                  <tr>
+                    <td colspan="7" class="text-center text-muted">Carregando...</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ABA 6: RELATÓRIOS -->
+      <div class="tab-pane fade" id="tabRelatorios">
+        <div class="row mb-4">
+          <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <h3>📈 Relatórios e Indicadores</h3>
+              <button class="btn btn-sm btn-primary" onclick="atualizarRelatorios()">🔄 Atualizar Dados</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- KPIs -->
+        <div class="row g-3 mb-4">
+          <div class="col-md-3">
+            <div class="card kpi-card">
+              <div class="card-body">
+                <p class="kpi-label">Total de Prescrições</p>
+                <p class="kpi-number text-primary" id="kpiTotalPrescricoes">0</p>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="card kpi-card" style="border-left-color: #28a745;">
+              <div class="card-body">
+                <p class="kpi-label">Bolsas Dispensadas</p>
+                <p class="kpi-number text-success" id="kpiDispensadas">0</p>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="card kpi-card" style="border-left-color: #ffc107;">
+              <div class="card-body">
+                <p class="kpi-label">Aguardando Bolsa</p>
+                <p class="kpi-number text-warning" id="kpiAguardando">0</p>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="card kpi-card" style="border-left-color: #dc3545;">
+              <div class="card-body">
+                <p class="kpi-label">Perdas/Devoluções</p>
+                <p class="kpi-number text-danger" id="kpiPerdas">0</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Indicadores Secundários -->
+        <div class="row g-3 mb-4">
+          <div class="col-md-4">
+            <div class="card">
+              <div class="card-body">
+                <p class="kpi-label">Taxa de Aproveitamento</p>
+                <p class="kpi-number text-info" id="kpiTaxaAproveitamento">0%</p>
+                <small class="text-muted">Dispensadas / Total Recebidas</small>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="card">
+              <div class="card-body">
+                <p class="kpi-label">Taxa de Conformidade</p>
+                <p class="kpi-number text-info" id="kpiTaxaConformidade">0%</p>
+                <small class="text-muted">Conformes / Total Recebimentos</small>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="card">
+              <div class="card-body">
+                <p class="kpi-label">Recebimentos Conformes</p>
+                <p class="kpi-number text-info" id="kpiRecebimentosConformes">0</p>
+                <small class="text-muted">Status: Conforme</small>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Gráficos -->
+        <div class="row">
+          <div class="col-md-6 mb-4">
+            <div class="card">
+              <div class="card-header">Status das Prescrições</div>
+              <div class="card-body">
+                <div class="chart-container">
+                  <canvas id="chartStatusPrescricoes"></canvas>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-md-6 mb-4">
+            <div class="card">
+              <div class="card-header">Motivos de Perdas/Devoluções</div>
+              <div class="card-body">
+                <div class="chart-container">
+                  <canvas id="chartMotivoPerdas"></canvas>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-md-12 mb-4">
+            <div class="card">
+              <div class="card-header">Evolução Temporal (Últimos 7 dias)</div>
+              <div class="card-body">
+                <div class="chart-container" style="height: 250px;">
+                  <canvas id="chartEvolucaoTemporal"></canvas>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tabela de Perdas Detalhada -->
+        <div class="row">
+          <div class="col-md-12">
+            <div class="card">
+              <div class="card-header">Detalhamento de Perdas/Devoluções</div>
+              <div class="card-body">
+                <div class="table-responsive">
+                  <table class="table table-hover table-sm">
+                    <thead>
+                      <tr>
+                        <th>Motivo</th>
+                        <th>Quantidade</th>
+                        <th>Percentual</th>
+                      </tr>
+                    </thead>
+                    <tbody id="tabelaDetalhesPerdas">
+                      <tr>
+                        <td colspan="3" class="text-center text-muted">Carregando...</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Login (Simulador) -->
+  <div class="modal fade" id="modalLogin" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">🔐 Autenticação</h5>
+        </div>
+        <div class="modal-body">
+          <form id="formLogin">
+            <div class="mb-3">
+              <label class="form-label">Usuário</label>
+              <input type="text" class="form-control" id="loginUsuario" required />
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Senha</label>
+              <input type="password" class="form-control" id="loginSenha" required />
+            </div>
+            <button type="submit" class="btn btn-primary w-100">Entrar</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="config.js"></script>
+  <script src="sharepoint-api.js"></script>
+  <script src="auth-simulator.js"></script>
+
+  <script>
+    // Variáveis globais
+    let modalLogin;
+    let contadorPrescricao = 1;
+    let acaoPendente = null;
+    let dadosPendentes = null;
+    let usuarioLogado = null;
+
+    // Funções de Loading
+    function mostrarLoading(mensagem = 'Processando...') {
+      const overlay = document.getElementById('loadingOverlay');
+      overlay.querySelector('p').textContent = mensagem;
+      overlay.classList.add('show');
+    }
+
+    function ocultarLoading() {
+      document.getElementById('loadingOverlay').classList.remove('show');
+    }
+
+    // Funções de ID de Prescrição
+    function gerarProximoIdPrescricao() {
+      const numeroFormatado = String(contadorPrescricao).padStart(SharePointConfig.DIGITOS_ID, '0');
+      return `${SharePointConfig.PREFIXO_ID_PRESCRICAO}${numeroFormatado}`;
+    }
+
+    function atualizarCampoIdPrescricao() {
+      const proximoId = gerarProximoIdPrescricao();
+      document.getElementById('idPrescricao').value = proximoId;
+    }
+
+    // Funções de Autenticação
+    async function pedirLogin(acao, dados) {
+      if (SharePointConfig.MODO_DESENVOLVIMENTO) {
+        // Modo desenvolvimento: usar simulador
+        acaoPendente = acao;
+        dadosPendentes = dados;
+        modalLogin.show();
+      } else {
+        // Modo produção: usar autenticação real (implementar depois)
+        alert('Autenticação Entra ID não configurada ainda.');
+      }
+    }
+
+    function confirmarLogin(usuario) {
+      usuarioLogado = usuario;
+      modalLogin.hide();
+
+      if (acaoPendente && dadosPendentes) {
+        executarAcao(acaoPendente, dadosPendentes);
+      }
+    }
+
+    // Executar ação após login
+    async function executarAcao(acao, dados) {
+      try {
+        mostrarLoading();
+
+        switch(acao) {
+          case 'prescricao':
+            await salvarPrescricao(dados);
+            break;
+          case 'recebimento':
+            await salvarRecebimento(dados);
+            break;
+          case 'dispensacao':
+            await salvarDispensacao(dados);
+            break;
+          case 'perda':
+            await salvarPerda(dados);
+            break;
+        }
+
+        ocultarLoading();
+        acaoPendente = null;
+        dadosPendentes = null;
+
+      } catch (error) {
+        ocultarLoading();
+        console.error('Erro ao executar ação:', error);
+        alert(`Erro: ${error.message}`);
+      }
+    }
+
+    // Salvar Prescrição
+    async function salvarPrescricao(dados) {
+      try {
+        const prescricao = {
+          idPrescricao: dados.idPrescricao,
+          paciente: dados.paciente,
+          prontuario: dados.prontuario,
+          leito: dados.leito,
+          vazao: dados.vazao,
+          volume: dados.volume,
+          composicao: dados.composicao,
+          observacoes: dados.observacoes,
+          status: 'Aguardando Bolsa'
+        };
+
+        await SharePointAPI.Prescricoes.criar(prescricao);
+
+        // Incrementar contador
+        contadorPrescricao++;
+        localStorage.setItem('contadorPrescricao_v2', contadorPrescricao);
+
+        alert(`✅ Prescrição ${dados.idPrescricao} registrada com sucesso!`);
+
+        document.getElementById('formPrescricao').reset();
+        atualizarCampoIdPrescricao();
+        await atualizarHistorico();
+        await atualizarSelectsPrescricoes();
+
+      } catch (error) {
+        throw new Error(`Erro ao salvar prescrição: ${error.message}`);
+      }
+    }
+
+    // Salvar Recebimento
+    async function salvarRecebimento(dados) {
+      try {
+        const prescricaoSelecionada = document.getElementById('recebIdPrescricao');
+        const option = prescricaoSelecionada.options[prescricaoSelecionada.selectedIndex];
+        const prescData = JSON.parse(option.dataset.prescricao);
+
+        const recebimento = {
+          idPrescricao: dados.idPrescricao,
+          lote: dados.lote,
+          paciente: prescData.Paciente,
+          leito: prescData.Leito,
+          temperatura: dados.temperatura,
+          integridade: dados.integridade,
+          status: dados.status,
+          conferente: dados.conferente,
+          observacoes: dados.observacoes
+        };
+
+        await SharePointAPI.Recebimentos.criar(recebimento);
+
+        // Atualizar status da prescrição
+        await SharePointAPI.Prescricoes.atualizarStatus(prescData.Id, 'Bolsa Recebida');
+
+        alert(`✅ Recebimento registrado!\nStatus: ${dados.status}`);
+
+        document.getElementById('formRecebimento').reset();
+        await atualizarHistorico();
+        await atualizarSelectsPrescricoes();
+
+      } catch (error) {
+        throw new Error(`Erro ao salvar recebimento: ${error.message}`);
+      }
+    }
+
+    // Salvar Dispensação
+    async function salvarDispensacao(dados) {
+      try {
+        const recebSelecionado = document.getElementById('dispensaIdPrescricao');
+        const option = recebSelecionado.options[recebSelecionado.selectedIndex];
+        const recebData = JSON.parse(option.dataset.recebimento);
+
+        const dispensacao = {
+          idPrescricao: recebData.IDPrescricao,
+          lote: recebData.Lote,
+          paciente: recebData.Paciente,
+          leito: recebData.Leito,
+          horaDispensa: dados.hora,
+          entregou: dados.entregou,
+          recebeu: dados.recebeu,
+          observacoes: dados.observacoes
+        };
+
+        await SharePointAPI.Dispensacoes.criar(dispensacao);
+
+        // Buscar prescrição para atualizar status
+        const presc = await SharePointAPI.Prescricoes.buscarPorIdPrescricao(recebData.IDPrescricao);
+        if (presc) {
+          await SharePointAPI.Prescricoes.atualizarStatus(presc.Id, 'Dispensada');
+        }
+
+        alert(`✅ Dispensação registrada!\n⚠️ Não esqueça de preencher o Google Forms (indicador de bolsas dispensadas)`);
+
+        document.getElementById('formDispensa').reset();
+        document.getElementById('dispensaHora').value = '21:00';
+        await atualizarHistorico();
+        await atualizarSelectsPrescricoes();
+
+      } catch (error) {
+        throw new Error(`Erro ao salvar dispensação: ${error.message}`);
+      }
+    }
+
+    // Salvar Perda/Devolução
+    async function salvarPerda(dados) {
+      try {
+        const perda = {
+          idPrescricao: dados.idPrescricao,
+          tipoPerdaString: dados.tipo,
+          motivo: dados.motivo,
+          detalhes: dados.detalhes
+        };
+
+        await SharePointAPI.Perdas.criar(perda);
+
+        // Atualizar status da prescrição
+        const presc = await SharePointAPI.Prescricoes.buscarPorIdPrescricao(dados.idPrescricao);
+        if (presc) {
+          await SharePointAPI.Prescricoes.atualizarStatus(presc.Id, 'Devolvida');
+        }
+
+        alert(`✅ ${dados.tipo} registrada!\n⚠️ Não esqueça de preencher o Google Forms (indicador de perdas/devoluções)`);
+
+        document.getElementById('formPerdas').reset();
+        await atualizarHistorico();
+        await atualizarSelectsPrescricoes();
+
+      } catch (error) {
+        throw new Error(`Erro ao salvar perda/devolução: ${error.message}`);
+      }
+    }
+
+    // Atualizar selects de prescrições
+    async function atualizarSelectsPrescricoes() {
+      try {
+        // Atualizar select de recebimento (prescrições aguardando bolsa)
+        const prescricoesAguardando = await SharePointAPI.Prescricoes.buscarAguardandoBolsa();
+        const selectReceb = document.getElementById('recebIdPrescricao');
+        selectReceb.innerHTML = '<option value="">-- Escolha uma prescrição aguardando bolsa --</option>';
+
+        prescricoesAguardando.forEach(presc => {
+          const option = document.createElement('option');
+          option.value = presc.Title;
+          option.textContent = `${presc.Title} - ${presc.Paciente} (Leito ${presc.Leito})`;
+          option.dataset.prescricao = JSON.stringify(presc);
+          selectReceb.appendChild(option);
+        });
+
+        // Atualizar select de dispensação (recebimentos conformes não dispensados)
+        const recebimentosConformes = await SharePointAPI.Recebimentos.buscarConformes();
+        const selectDispensa = document.getElementById('dispensaIdPrescricao');
+        selectDispensa.innerHTML = '<option value="">-- Escolha um recebimento conforme --</option>';
+
+        for (const receb of recebimentosConformes) {
+          const jaDispensada = await SharePointAPI.Dispensacoes.jaDispensada(receb.IDPrescricao);
+          if (!jaDispensada) {
+            const option = document.createElement('option');
+            option.value = receb.IDPrescricao;
+            option.textContent = `${receb.IDPrescricao} - Lote ${receb.Lote} - ${receb.Paciente}`;
+            option.dataset.recebimento = JSON.stringify(receb);
+            selectDispensa.appendChild(option);
+          }
+        }
+
+      } catch (error) {
+        console.error('Erro ao atualizar selects:', error);
+      }
+    }
+
+    // Atualizar histórico
+    async function atualizarHistorico() {
+      try {
+        const tbody = document.getElementById('historicoTabela');
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center">Carregando...</td></tr>';
+
+        // Buscar todos os dados
+        const [prescricoes, recebimentos, dispensacoes, perdas] = await Promise.all([
+          SharePointAPI.Prescricoes.buscarTodas(),
+          SharePointAPI.Recebimentos.buscarTodos(),
+          SharePointAPI.Dispensacoes.buscarTodas(),
+          SharePointAPI.Perdas.buscarTodas()
+        ]);
+
+        // Criar array de registros
+        const registros = [];
+
+        prescricoes.forEach(p => {
+          registros.push({
+            tipo: 'Prescrição',
+            idPrescricao: p.Title,
+            paciente: p.Paciente,
+            leito: p.Leito,
+            status: p.Status,
+            dataHora: p.Created,
+            usuario: p.Author || '-'
+          });
+        });
+
+        recebimentos.forEach(r => {
+          registros.push({
+            tipo: 'Recebimento',
+            idPrescricao: r.IDPrescricao,
+            paciente: r.Paciente,
+            leito: r.Leito,
+            status: r.StatusConferencia,
+            dataHora: r.Created,
+            usuario: r.Author || '-'
+          });
+        });
+
+        dispensacoes.forEach(d => {
+          registros.push({
+            tipo: 'Dispensação',
+            idPrescricao: d.IDPrescricao,
+            paciente: d.Paciente,
+            leito: d.Leito,
+            status: 'Dispensada',
+            dataHora: d.Created,
+            usuario: d.Author || '-'
+          });
+        });
+
+        perdas.forEach(p => {
+          registros.push({
+            tipo: 'Perda/Devolução',
+            idPrescricao: p.IDPrescricao,
+            paciente: '-',
+            leito: '-',
+            status: p.TipoPerda,
+            dataHora: p.Created,
+            usuario: p.Author || '-'
+          });
+        });
+
+        // Ordenar por data (mais recente primeiro)
+        registros.sort((a, b) => new Date(b.dataHora) - new Date(a.dataHora));
+
+        // Renderizar tabela
+        tbody.innerHTML = '';
+        registros.forEach(reg => {
+          const tr = document.createElement('tr');
+
+          let badgeClass = '';
+          if (reg.status.includes('Aguardando')) badgeClass = 'status-aguardando';
+          else if (reg.status.includes('Recebida')) badgeClass = 'status-recebida';
+          else if (reg.status.includes('Dispensada')) badgeClass = 'status-dispensada';
+          else if (reg.status.includes('Devolvida')) badgeClass = 'status-devolvida';
+          else if (reg.status.includes('Conforme')) badgeClass = 'status-conforme';
+          else if (reg.status.includes('Inconsistente')) badgeClass = 'status-inconsistente';
+
+          tr.innerHTML = `
+            <td>${reg.tipo}</td>
+            <td><strong>${reg.idPrescricao}</strong></td>
+            <td>${reg.paciente}</td>
+            <td>${reg.leito}</td>
+            <td><span class="badge ${badgeClass}">${reg.status}</span></td>
+            <td>${new Date(reg.dataHora).toLocaleString('pt-BR')}</td>
+            <td>${reg.usuario}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+
+        if (registros.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">Nenhum registro encontrado</td></tr>';
+        }
+
+      } catch (error) {
+        console.error('Erro ao atualizar histórico:', error);
+        document.getElementById('historicoTabela').innerHTML =
+          `<tr><td colspan="7" class="text-center text-danger">Erro ao carregar: ${error.message}</td></tr>`;
+      }
+    }
+
+    // Exportar CSV
+    function exportarCSV() {
+      mostrarLoading('Gerando CSV...');
+
+      setTimeout(async () => {
+        try {
+          const tbody = document.getElementById('historicoTabela');
+          const rows = Array.from(tbody.querySelectorAll('tr'));
+
+          let csv = '\uFEFF'; // BOM para UTF-8
+          csv += 'Tipo;ID Prescrição;Paciente;Leito;Status;Data/Hora;Usuário\n';
+
+          rows.forEach(row => {
+            const cells = Array.from(row.querySelectorAll('td'));
+            if (cells.length > 1) {
+              const line = cells.map(cell => {
+                let text = cell.textContent.trim();
+                if (text.includes(';') || text.includes('"') || text.includes('\n')) {
+                  text = '"' + text.replace(/"/g, '""') + '"';
+                }
+                return text;
+              }).join(';');
+              csv += line + '\n';
+            }
+          });
+
+          const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+          const link = document.createElement('a');
+          const url = URL.createObjectURL(blob);
+
+          link.setAttribute('href', url);
+          link.setAttribute('download', `npt_registros_${new Date().toISOString().split('T')[0]}.csv`);
+          link.style.visibility = 'hidden';
+
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+
+          ocultarLoading();
+          alert('✅ CSV exportado com sucesso!');
+
+        } catch (error) {
+          ocultarLoading();
+          alert(`Erro ao exportar: ${error.message}`);
+        }
+      }, 100);
+    }
+
+    // Inicialização
+    document.addEventListener('DOMContentLoaded', async function() {
+      console.log('🚀 Inicializando Sistema NPT SharePoint...');
+
+      // Exibir alerta de modo desenvolvimento
+      if (SharePointConfig.MODO_DESENVOLVIMENTO) {
+        document.getElementById('alertDesenvolvimento').style.display = 'block';
+      }
+
+      modalLogin = new bootstrap.Modal(document.getElementById('modalLogin'));
+
+      // Carregar contador
+      try {
+        const contadorSalvo = localStorage.getItem('contadorPrescricao_v2');
+        if (contadorSalvo) {
+          contadorPrescricao = parseInt(contadorSalvo, 10);
+        }
+      } catch (error) {
+        console.error('Erro ao carregar contador:', error);
+      }
+
+      atualizarCampoIdPrescricao();
+
+      // Testar conexão SharePoint
+      try {
+        mostrarLoading('Conectando ao SharePoint...');
+        const resultado = await SharePointAPI.testarConexao();
+        ocultarLoading();
+
+        if (resultado.sucesso) {
+          console.log('✅ Conectado ao SharePoint:', resultado.site);
+          document.getElementById('statusConexao').className = 'badge bg-success';
+          document.getElementById('statusConexao').textContent = '● SharePoint Conectado';
+        } else {
+          throw new Error(resultado.erro);
+        }
+      } catch (error) {
+        ocultarLoading();
+        console.error('❌ Erro de conexão:', error);
+        document.getElementById('statusConexao').className = 'badge bg-danger';
+        document.getElementById('statusConexao').textContent = '● Erro de Conexão';
+        alert(`Erro ao conectar ao SharePoint:\n${error.message}\n\nVerifique:\n1. URL configurada em config.js\n2. Listas criadas no SharePoint\n3. Permissões de acesso`);
+      }
+
+      // Carregar dados iniciais
+      await atualizarHistorico();
+      await atualizarSelectsPrescricoes();
+
+      // Event Listeners
+
+      // Form Prescrição
+      document.getElementById('formPrescricao').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const dados = {
+          idPrescricao: document.getElementById('idPrescricao').value.trim(),
+          paciente: document.getElementById('prescPaciente').value.trim(),
+          prontuario: document.getElementById('prescProntuario').value.trim(),
+          leito: document.getElementById('prescLeito').value.trim(),
+          vazao: document.getElementById('prescVazao').value.trim(),
+          volume: document.getElementById('prescVolume').value.trim(),
+          composicao: document.getElementById('prescComposicao').value.trim(),
+          observacoes: document.getElementById('prescObservacoes').value.trim()
+        };
+        pedirLogin('prescricao', dados);
+      });
+
+      // Select Recebimento
+      document.getElementById('recebIdPrescricao').addEventListener('change', function() {
+        const option = this.options[this.selectedIndex];
+        if (option.dataset.prescricao) {
+          const presc = JSON.parse(option.dataset.prescricao);
+          document.getElementById('recebPacienteInfo').textContent = presc.Paciente;
+          document.getElementById('recebLeitoInfo').textContent = presc.Leito;
+          document.getElementById('recebVazaoInfo').textContent = presc.Vazao;
+          document.getElementById('recebVolumeInfo').textContent = presc.Volume;
+        }
+      });
+
+      // Form Recebimento
+      document.getElementById('formRecebimento').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const dados = {
+          idPrescricao: document.getElementById('recebIdPrescricao').value,
+          lote: document.getElementById('recebLote').value.trim(),
+          temperatura: document.getElementById('recebTemperatura').value,
+          integridade: document.getElementById('recebIntegridade').value,
+          status: document.getElementById('recebStatus').value,
+          conferente: document.getElementById('recebConferente').value.trim(),
+          observacoes: document.getElementById('recebObservacoes').value.trim()
+        };
+
+        if (!dados.idPrescricao) {
+          alert('Selecione uma prescrição!');
+          return;
+        }
+
+        pedirLogin('recebimento', dados);
+      });
+
+      // Select Dispensação
+      document.getElementById('dispensaIdPrescricao').addEventListener('change', function() {
+        const option = this.options[this.selectedIndex];
+        if (option.dataset.recebimento) {
+          const receb = JSON.parse(option.dataset.recebimento);
+          document.getElementById('dispensaIdPrescInfo').textContent = receb.IDPrescricao;
+          document.getElementById('dispensaLoteInfo').textContent = receb.Lote;
+          document.getElementById('dispensaPacienteInfo').textContent = receb.Paciente;
+          document.getElementById('dispensaLeitoInfo').textContent = receb.Leito;
+        }
+      });
+
+      // Form Dispensação
+      document.getElementById('formDispensa').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const dados = {
+          hora: document.getElementById('dispensaHora').value,
+          entregou: document.getElementById('dispensaEntregou').value.trim(),
+          recebeu: document.getElementById('dispensaRecebeu').value.trim(),
+          observacoes: document.getElementById('dispensaObservacoes').value.trim()
+        };
+
+        if (!document.getElementById('dispensaIdPrescricao').value) {
+          alert('Selecione um recebimento!');
+          return;
+        }
+
+        pedirLogin('dispensacao', dados);
+      });
+
+      // Form Perdas
+      document.getElementById('formPerdas').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const dados = {
+          idPrescricao: document.getElementById('perdaIdPrescricao').value.trim(),
+          tipo: document.getElementById('perdaTipo').value,
+          motivo: document.getElementById('perdaMotivo').value,
+          detalhes: document.getElementById('perdaDetalhes').value.trim()
+        };
+        pedirLogin('perda', dados);
+      });
+
+      // Form Login
+      document.getElementById('formLogin').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const usuario = document.getElementById('loginUsuario').value;
+        const senha = document.getElementById('loginSenha').value;
+
+        if (SharePointConfig.MODO_DESENVOLVIMENTO) {
+          // Usar simulador
+          const autenticado = await AuthSimulator.autenticar(usuario, senha);
+          if (autenticado) {
+            confirmarLogin(usuario);
+            document.getElementById('formLogin').reset();
+          } else {
+            alert('❌ Usuário ou senha inválidos');
+          }
+        }
+      });
+
+      console.log('✅ Sistema iniciado com sucesso!');
+    });
+
+    // ============================================================================
+    // RELATÓRIOS E DASHBOARDS
+    // ============================================================================
+
+    let chartStatusPrescricoes = null;
+    let chartMotivoPerdas = null;
+    let chartEvolucaoTemporal = null;
+
+    /**
+     * Atualizar todos os relatórios e gráficos
+     */
+    async function atualizarRelatorios() {
+      try {
+        mostrarLoading('Gerando relatórios...');
+
+        // Buscar todos os dados
+        const [prescricoes, recebimentos, dispensacoes, perdas] = await Promise.all([
+          SharePointAPI.Prescricoes.buscarTodas(),
+          SharePointAPI.Recebimentos.buscarTodos(),
+          SharePointAPI.Dispensacoes.buscarTodas(),
+          SharePointAPI.Perdas.buscarTodas()
+        ]);
+
+        // Calcular KPIs
+        calcularKPIs(prescricoes, recebimentos, dispensacoes, perdas);
+
+        // Gerar gráficos
+        gerarGraficoStatusPrescricoes(prescricoes);
+        gerarGraficoMotivoPerdas(perdas);
+        gerarGraficoEvolucaoTemporal(prescricoes, dispensacoes);
+
+        // Gerar tabela de perdas
+        gerarTabelaPerdas(perdas);
+
+        ocultarLoading();
+
+      } catch (error) {
+        ocultarLoading();
+        console.error('Erro ao atualizar relatórios:', error);
+        alert(`Erro ao gerar relatórios: ${error.message}`);
+      }
+    }
+
+    /**
+     * Calcular e exibir KPIs
+     */
+    function calcularKPIs(prescricoes, recebimentos, dispensacoes, perdas) {
+      // Total de prescrições
+      const totalPrescricoes = prescricoes.length;
+      document.getElementById('kpiTotalPrescricoes').textContent = totalPrescricoes;
+
+      // Bolsas dispensadas
+      const totalDispensadas = dispensacoes.length;
+      document.getElementById('kpiDispensadas').textContent = totalDispensadas;
+
+      // Aguardando bolsa
+      const aguardandoBolsa = prescricoes.filter(p => p.Status === 'Aguardando Bolsa').length;
+      document.getElementById('kpiAguardando').textContent = aguardandoBolsa;
+
+      // Perdas/Devoluções
+      const totalPerdas = perdas.length;
+      document.getElementById('kpiPerdas').textContent = totalPerdas;
+
+      // Taxa de aproveitamento
+      const totalRecebidas = recebimentos.length;
+      const taxaAproveitamento = totalRecebidas > 0
+        ? ((totalDispensadas / totalRecebidas) * 100).toFixed(1)
+        : '0.0';
+      document.getElementById('kpiTaxaAproveitamento').textContent = `${taxaAproveitamento}%`;
+
+      // Taxa de conformidade
+      const recebimentosConformes = recebimentos.filter(r => r.StatusConferencia === 'Conforme').length;
+      const taxaConformidade = totalRecebidas > 0
+        ? ((recebimentosConformes / totalRecebidas) * 100).toFixed(1)
+        : '0.0';
+      document.getElementById('kpiTaxaConformidade').textContent = `${taxaConformidade}%`;
+
+      // Recebimentos conformes
+      document.getElementById('kpiRecebimentosConformes').textContent = recebimentosConformes;
+    }
+
+    /**
+     * Gráfico de pizza: Status das prescrições
+     */
+    function gerarGraficoStatusPrescricoes(prescricoes) {
+      const ctx = document.getElementById('chartStatusPrescricoes');
+
+      // Contar por status
+      const statusCount = {};
+      prescricoes.forEach(p => {
+        const status = p.Status || 'Não definido';
+        statusCount[status] = (statusCount[status] || 0) + 1;
+      });
+
+      // Destruir gráfico anterior se existir
+      if (chartStatusPrescricoes) {
+        chartStatusPrescricoes.destroy();
+      }
+
+      // Criar novo gráfico
+      chartStatusPrescricoes = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: Object.keys(statusCount),
+          datasets: [{
+            data: Object.values(statusCount),
+            backgroundColor: [
+              '#ffc107', // Aguardando Bolsa
+              '#17a2b8', // Bolsa Recebida
+              '#28a745', // Dispensada
+              '#dc3545'  // Devolvida
+            ],
+            borderWidth: 2,
+            borderColor: '#fff'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'bottom'
+            },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  const label = context.label || '';
+                  const value = context.parsed || 0;
+                  const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                  const percentage = ((value / total) * 100).toFixed(1);
+                  return `${label}: ${value} (${percentage}%)`;
+                }
+              }
+            }
+          }
+        }
+      });
+    }
+
+    /**
+     * Gráfico de barras horizontais: Motivos de perdas
+     */
+    function gerarGraficoMotivoPerdas(perdas) {
+      const ctx = document.getElementById('chartMotivoPerdas');
+
+      if (perdas.length === 0) {
+        // Se não há perdas, mostrar mensagem
+        if (chartMotivoPerdas) {
+          chartMotivoPerdas.destroy();
+        }
+        ctx.getContext('2d').clearRect(0, 0, ctx.width, ctx.height);
+        return;
+      }
+
+      // Contar por motivo
+      const motivoCount = {};
+      perdas.forEach(p => {
+        const motivo = p.Motivo || 'Não especificado';
+        motivoCount[motivo] = (motivoCount[motivo] || 0) + 1;
+      });
+
+      // Ordenar por quantidade (maior para menor)
+      const motivosOrdenados = Object.entries(motivoCount)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 10); // Top 10
+
+      const labels = motivosOrdenados.map(m => m[0]);
+      const data = motivosOrdenados.map(m => m[1]);
+
+      // Destruir gráfico anterior
+      if (chartMotivoPerdas) {
+        chartMotivoPerdas.destroy();
+      }
+
+      // Criar novo gráfico
+      chartMotivoPerdas = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Quantidade',
+            data: data,
+            backgroundColor: '#dc3545',
+            borderColor: '#c82333',
+            borderWidth: 1
+          }]
+        },
+        options: {
+          indexAxis: 'y',
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              display: false
+            },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  return `Quantidade: ${context.parsed.x}`;
+                }
+              }
+            }
+          },
+          scales: {
+            x: {
+              beginAtZero: true,
+              ticks: {
+                precision: 0
+              }
+            }
+          }
+        }
+      });
+    }
+
+    /**
+     * Gráfico de linha: Evolução temporal (últimos 7 dias)
+     */
+    function gerarGraficoEvolucaoTemporal(prescricoes, dispensacoes) {
+      const ctx = document.getElementById('chartEvolucaoTemporal');
+
+      // Gerar últimos 7 dias
+      const hoje = new Date();
+      const dias = [];
+      const labels = [];
+
+      for (let i = 6; i >= 0; i--) {
+        const data = new Date(hoje);
+        data.setDate(data.getDate() - i);
+        dias.push(data);
+        labels.push(data.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }));
+      }
+
+      // Contar prescrições por dia
+      const prescricoesPorDia = dias.map(dia => {
+        return prescricoes.filter(p => {
+          const dataPrescricao = new Date(p.Created);
+          return dataPrescricao.toDateString() === dia.toDateString();
+        }).length;
+      });
+
+      // Contar dispensações por dia
+      const dispensacoesPorDia = dias.map(dia => {
+        return dispensacoes.filter(d => {
+          const dataDispensacao = new Date(d.Created);
+          return dataDispensacao.toDateString() === dia.toDateString();
+        }).length;
+      });
+
+      // Destruir gráfico anterior
+      if (chartEvolucaoTemporal) {
+        chartEvolucaoTemporal.destroy();
+      }
+
+      // Criar novo gráfico
+      chartEvolucaoTemporal = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              label: 'Prescrições',
+              data: prescricoesPorDia,
+              borderColor: '#0d6efd',
+              backgroundColor: 'rgba(13, 110, 253, 0.1)',
+              tension: 0.3,
+              fill: true
+            },
+            {
+              label: 'Dispensações',
+              data: dispensacoesPorDia,
+              borderColor: '#28a745',
+              backgroundColor: 'rgba(40, 167, 69, 0.1)',
+              tension: 0.3,
+              fill: true
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'top'
+            },
+            tooltip: {
+              mode: 'index',
+              intersect: false
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                precision: 0
+              }
+            }
+          }
+        }
+      });
+    }
+
+    /**
+     * Gerar tabela detalhada de perdas
+     */
+    function gerarTabelaPerdas(perdas) {
+      const tbody = document.getElementById('tabelaDetalhesPerdas');
+
+      if (perdas.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="3" class="text-center text-muted">Nenhuma perda/devolução registrada</td></tr>';
+        return;
+      }
+
+      // Contar por motivo
+      const motivoCount = {};
+      perdas.forEach(p => {
+        const motivo = p.Motivo || 'Não especificado';
+        motivoCount[motivo] = (motivoCount[motivo] || 0) + 1;
+      });
+
+      // Calcular total
+      const total = perdas.length;
+
+      // Ordenar por quantidade
+      const motivosOrdenados = Object.entries(motivoCount)
+        .sort((a, b) => b[1] - a[1]);
+
+      // Gerar HTML
+      tbody.innerHTML = '';
+      motivosOrdenados.forEach(([motivo, qtd]) => {
+        const percentual = ((qtd / total) * 100).toFixed(1);
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${motivo}</td>
+          <td><strong>${qtd}</strong></td>
+          <td>
+            <div class="progress" style="height: 20px;">
+              <div class="progress-bar bg-danger" role="progressbar"
+                   style="width: ${percentual}%"
+                   aria-valuenow="${percentual}" aria-valuemin="0" aria-valuemax="100">
+                ${percentual}%
+              </div>
+            </div>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+  </script>
+</body>
+</html>

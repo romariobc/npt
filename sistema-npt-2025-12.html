@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Sistema NPT HUWC - Fluxo Completo</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background-color: #f8f9fa;
+    }
+
+    .container {
+      max-width: 1400px;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 30px;
+      color: #2c3e50;
+    }
+
+    .alert-info-custom {
+      background-color: #e7f3ff;
+      border-left: 4px solid #0d6efd;
+      padding: 15px;
+      margin-bottom: 20px;
+      border-radius: 4px;
+    }
+
+    .form-label {
+      font-weight: 600;
+      margin-bottom: 5px;
+    }
+
+    .badge-status {
+      font-size: 0.85rem;
+      padding: 5px 10px;
+    }
+
+    .readonly-highlight {
+      background-color: #e9ecef !important;
+      cursor: not-allowed;
+    }
+
+    .card-header {
+      background-color: #f8f9fa;
+      border-bottom: 2px solid #dee2e6;
+      font-weight: 600;
+    }
+
+    .btn-group-custom {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    table {
+      font-size: 0.9rem;
+    }
+
+    .table-hover tbody tr:hover {
+      background-color: #f1f3f5;
+    }
+
+    .status-aguardando { background-color: #fff3cd; color: #856404; }
+    .status-recebida { background-color: #d1ecf1; color: #0c5460; }
+    .status-dispensada { background-color: #d4edda; color: #155724; }
+    .status-devolvida { background-color: #f8d7da; color: #721c24; }
+    .status-conforme { background-color: #d4edda; color: #155724; }
+    .status-inconsistente { background-color: #f8d7da; color: #721c24; }
+  </style>
+</head>
+<body>
+  <div class="container py-4">
+    <h1>📦 Sistema NPT HUWC - Gestão Completa</h1>
+    <p class="text-center text-muted mb-4">Fluxo: Prescrição → Recebimento → Dispensação | Vigência: 02/12/2025</p>
+
+    <ul class="nav nav-tabs mb-3" id="mainTabs" role="tablist">
+      <li class="nav-item">
+        <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tabPrescricao">1. Prescrição</button>
+      </li>
+      <li class="nav-item">
+        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabRecebimento">2. Recebimento Bolsa</button>
+      </li>
+      <li class="nav-item">
+        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabDispensa">3. Dispensação</button>
+      </li>
+      <li class="nav-item">
+        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabPerdas">❌ Perdas/Devoluções</button>
+      </li>
+      <li class="nav-item">
+        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabHistorico">📊 Histórico</button>
+      </li>
+    </ul>
+
+    <div class="tab-content">
+      <!-- ABA 1: PRESCRIÇÃO -->
+      <div class="tab-pane fade show active" id="tabPrescricao">
+        <div class="alert-info-custom">
+          <strong>📋 Etapa 1: Registro da Prescrição Médica</strong><br>
+          Prescrição recebida por e-mail (fscmhuwc@gmail.com) e encaminhada para Pronutrir.<br>
+          Imprimir 2 vias: Via 1 (arquivo) + Via 2 (conferência de recebimento).
+        </div>
+
+        <form id="formPrescricao">
+          <div class="row">
+            <div class="col-md-4 mb-3">
+              <label class="form-label">ID da Prescrição (Auto-gerado)</label>
+              <input type="text" id="idPrescricao" class="form-control readonly-highlight" readonly />
+              <small class="text-muted">Sequência global automática</small>
+            </div>
+            <div class="col-md-4 mb-3">
+              <label class="form-label">Nome do Paciente *</label>
+              <input type="text" id="prescPaciente" class="form-control" required />
+            </div>
+            <div class="col-md-2 mb-3">
+              <label class="form-label">Prontuário *</label>
+              <input type="text" id="prescProntuario" class="form-control" required />
+            </div>
+            <div class="col-md-2 mb-3">
+              <label class="form-label">Leito *</label>
+              <input type="text" id="prescLeito" class="form-control" required />
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-md-3 mb-3">
+              <label class="form-label">Vazão *</label>
+              <input type="text" id="prescVazao" class="form-control" placeholder="Ex: 50 mL/h" required />
+            </div>
+            <div class="col-md-3 mb-3">
+              <label class="form-label">Volume Total *</label>
+              <input type="text" id="prescVolume" class="form-control" placeholder="Ex: 1200 mL" required />
+            </div>
+            <div class="col-md-6 mb-3">
+              <label class="form-label">Composição</label>
+              <input type="text" id="prescComposicao" class="form-control" placeholder="Descrição da composição" />
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Observações</label>
+            <textarea id="prescObservacoes" class="form-control" rows="2"></textarea>
+          </div>
+
+          <button type="submit" class="btn btn-primary">💾 Salvar Prescrição</button>
+        </form>
+      </div>
+
+      <!-- ABA 2: RECEBIMENTO DA BOLSA -->
+      <div class="tab-pane fade" id="tabRecebimento">
+        <div class="alert-info-custom">
+          <strong>📦 Etapa 2: Conferência do Recebimento da Bolsa (Tarde)</strong><br>
+          Conferir bolsa vs prescrição: rótulo, nome, leito, vazão, temperatura, integridade.<br>
+          Pode ser realizado por farmacêutico ou técnico treinado.
+        </div>
+
+        <form id="formRecebimento">
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label class="form-label">ID da Prescrição *</label>
+              <select id="recebIdPrescricao" class="form-control" required>
+                <option value="">Selecione a prescrição...</option>
+              </select>
+              <small class="text-muted">Apenas prescrições aguardando bolsa</small>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label class="form-label">Número do Lote da Bolsa *</label>
+              <input type="text" id="recebLote" class="form-control" placeholder="Lote da Pronutrir" required />
+            </div>
+          </div>
+
+          <div class="card mb-3">
+            <div class="card-header">Dados da Prescrição (Auto-preenchido)</div>
+            <div class="card-body">
+              <div class="row">
+                <div class="col-md-4">
+                  <strong>Paciente:</strong> <span id="recebPacienteInfo">-</span>
+                </div>
+                <div class="col-md-2">
+                  <strong>Leito:</strong> <span id="recebLeitoInfo">-</span>
+                </div>
+                <div class="col-md-3">
+                  <strong>Vazão:</strong> <span id="recebVazaoInfo">-</span>
+                </div>
+                <div class="col-md-3">
+                  <strong>Volume:</strong> <span id="recebVolumeInfo">-</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-md-3 mb-3">
+              <label class="form-label">Temperatura OK? *</label>
+              <select id="recebTemperatura" class="form-control" required>
+                <option value="">Selecione...</option>
+                <option value="Sim">✓ Sim</option>
+                <option value="Não">✗ Não</option>
+              </select>
+            </div>
+            <div class="col-md-3 mb-3">
+              <label class="form-label">Integridade da Bolsa? *</label>
+              <select id="recebIntegridade" class="form-control" required>
+                <option value="">Selecione...</option>
+                <option value="Íntegra">✓ Íntegra</option>
+                <option value="Violada">✗ Violada</option>
+              </select>
+            </div>
+            <div class="col-md-3 mb-3">
+              <label class="form-label">Status da Conferência *</label>
+              <select id="recebStatus" class="form-control" required>
+                <option value="">Selecione...</option>
+                <option value="Conforme">✓ Conforme</option>
+                <option value="Inconsistente">✗ Inconsistente</option>
+              </select>
+            </div>
+            <div class="col-md-3 mb-3">
+              <label class="form-label">Conferente *</label>
+              <input type="text" id="recebConferente" class="form-control" placeholder="Nome do conferente" required />
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Observações</label>
+            <textarea id="recebObservacoes" class="form-control" rows="2" placeholder="Se inconsistente, descrever o problema"></textarea>
+          </div>
+
+          <div class="alert alert-warning">
+            <strong>⚠️ Importante:</strong> Se status = Inconsistente, a bolsa será marcada para devolução à Pronutrir.
+          </div>
+
+          <button type="submit" class="btn btn-success">✓ Confirmar Recebimento</button>
+        </form>
+      </div>
+
+      <!-- ABA 3: DISPENSAÇÃO -->
+      <div class="tab-pane fade" id="tabDispensa">
+        <div class="alert-info-custom">
+          <strong>🌙 Etapa 3: Dispensação para Unidade (Período Noturno ~ 21h)</strong><br>
+          Realizar nova conferência obrigatória entre prescrição e bolsa.<br>
+          Enviar bolsa com prescrição médica para a unidade.
+        </div>
+
+        <form id="formDispensa">
+          <div class="row">
+            <div class="col-md-12 mb-3">
+              <label class="form-label">Selecionar Bolsa para Dispensar *</label>
+              <select id="dispensaIdPrescricao" class="form-control" required>
+                <option value="">Selecione a bolsa...</option>
+              </select>
+              <small class="text-muted">Apenas bolsas recebidas e conformes</small>
+            </div>
+          </div>
+
+          <div class="card mb-3">
+            <div class="card-header">Dados da Bolsa (Auto-preenchido)</div>
+            <div class="card-body">
+              <div class="row">
+                <div class="col-md-3">
+                  <strong>Paciente:</strong> <span id="dispensaPacienteInfo">-</span>
+                </div>
+                <div class="col-md-2">
+                  <strong>Leito:</strong> <span id="dispensaLeitoInfo">-</span>
+                </div>
+                <div class="col-md-2">
+                  <strong>Lote:</strong> <span id="dispensaLoteInfo">-</span>
+                </div>
+                <div class="col-md-2">
+                  <strong>Vazão:</strong> <span id="dispensaVazaoInfo">-</span>
+                </div>
+                <div class="col-md-3">
+                  <strong>Volume:</strong> <span id="dispensaVolumeInfo">-</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-md-3 mb-3">
+              <label class="form-label">Hora da Dispensação *</label>
+              <input type="time" id="dispensaHora" class="form-control" value="21:00" required />
+            </div>
+            <div class="col-md-4 mb-3">
+              <label class="form-label">Quem Entregou *</label>
+              <input type="text" id="dispensaEntregou" class="form-control" placeholder="Nome do farmacêutico" required />
+            </div>
+            <div class="col-md-5 mb-3">
+              <label class="form-label">Quem Recebeu (Unidade) *</label>
+              <input type="text" id="dispensaRecebeu" class="form-control" placeholder="Nome do profissional da unidade" required />
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Observações</label>
+            <textarea id="dispensaObservacoes" class="form-control" rows="2"></textarea>
+          </div>
+
+          <div class="alert alert-info">
+            <strong>ℹ️ Lembrete:</strong> Preencher formulário de indicador (Google Forms - Bolsas de nutrição parenteral dispensadas).
+          </div>
+
+          <button type="submit" class="btn btn-primary">📤 Confirmar Dispensação</button>
+        </form>
+      </div>
+
+      <!-- ABA 4: PERDAS/DEVOLUÇÕES -->
+      <div class="tab-pane fade" id="tabPerdas">
+        <div class="alert-info-custom">
+          <strong>❌ Registro de Perdas e Devoluções</strong><br>
+          Registrar bolsas devolvidas à Pronutrir ou perdidas por qualquer motivo.
+        </div>
+
+        <form id="formPerdas">
+          <div class="row">
+            <div class="col-md-8 mb-3">
+              <label class="form-label">ID da Prescrição / Lote *</label>
+              <input type="text" id="perdaId" class="form-control" placeholder="ID da prescrição ou número do lote" required />
+            </div>
+            <div class="col-md-4 mb-3">
+              <label class="form-label">Tipo *</label>
+              <select id="perdaTipo" class="form-control" required>
+                <option value="">Selecione...</option>
+                <option value="Devolução">Devolução à Pronutrir</option>
+                <option value="Perda">Perda</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Motivo *</label>
+            <select id="perdaMotivo" class="form-control" required>
+              <option value="">Selecione o motivo...</option>
+              <option value="Temperatura inadequada">Temperatura inadequada</option>
+              <option value="Composição incorreta">Composição incorreta</option>
+              <option value="Volume incorreto">Volume incorreto</option>
+              <option value="Identificação incorreta">Identificação incorreta do paciente</option>
+              <option value="Integridade comprometida">Integridade da bolsa comprometida</option>
+              <option value="Prescrição cancelada">Prescrição cancelada</option>
+              <option value="Paciente em alta">Paciente recebeu alta</option>
+              <option value="Paciente foi a óbito">Paciente foi a óbito</option>
+              <option value="Vencimento">Vencimento</option>
+              <option value="Outro">Outro</option>
+            </select>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Detalhes/Observações *</label>
+            <textarea id="perdaDetalhes" class="form-control" rows="3" placeholder="Descreva o ocorrido em detalhes" required></textarea>
+          </div>
+
+          <div class="alert alert-warning">
+            <strong>⚠️ Importante:</strong> Este registro será incluído no relatório de perdas. Preencher também o formulário Google Forms de bolsas perdidas.
+          </div>
+
+          <button type="submit" class="btn btn-danger">💀 Registrar Perda/Devolução</button>
+        </form>
+      </div>
+
+      <!-- ABA 5: HISTÓRICO -->
+      <div class="tab-pane fade" id="tabHistorico">
+        <div class="mb-3 btn-group-custom">
+          <button id="btnExportarCSV" class="btn btn-outline-primary">📊 Exportar CSV</button>
+          <button id="btnExportarPDF" class="btn btn-outline-danger">📄 Exportar PDF</button>
+          <button id="btnLimparFiltros" class="btn btn-outline-secondary">🔄 Atualizar</button>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Filtrar por Tipo:</label>
+          <select id="filtroTipo" class="form-control">
+            <option value="">Todos</option>
+            <option value="Prescrição">Prescrição</option>
+            <option value="Recebimento">Recebimento</option>
+            <option value="Dispensação">Dispensação</option>
+            <option value="Perda/Devolução">Perda/Devolução</option>
+          </select>
+        </div>
+
+        <div class="table-responsive">
+          <table class="table table-bordered table-hover table-sm">
+            <thead class="table-light">
+              <tr>
+                <th>Data/Hora</th>
+                <th>Tipo</th>
+                <th>ID/Lote</th>
+                <th>Paciente</th>
+                <th>Leito</th>
+                <th>Status/Detalhes</th>
+                <th>Usuário</th>
+              </tr>
+            </thead>
+            <tbody id="tabelaHistoricoBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Autenticação -->
+  <div class="modal fade" id="modalLogin" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">🔐 Autenticação Necessária</h5>
+        </div>
+        <div class="modal-body">
+          <input id="loginUsuario" class="form-control mb-2" placeholder="Usuário" autocomplete="username" />
+          <input id="loginSenha" type="password" class="form-control mb-2" placeholder="Senha" autocomplete="current-password" />
+          <div id="loginErro" class="text-danger small" style="display:none;">Usuário ou senha inválidos</div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="button" id="btnConfirmarLogin" class="btn btn-primary">Confirmar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+  <script>
+    // Variáveis globais
+    let usuarios = {};
+    let acaoPendente = null;
+    let dadosPendentes = null;
+    let usuarioLogado = null;
+    let registros = [];
+    let modalLogin = null;
+    let contadorPrescricao = 1;
+
+    // Gera próximo ID de prescrição
+    function gerarProximoIdPrescricao() {
+      const proximoNumero = String(contadorPrescricao).padStart(5, '0');
+      return `NPT-${proximoNumero}`;
+    }
+
+    // Atualiza o campo de ID na tela
+    function atualizarCampoIdPrescricao() {
+      document.getElementById('idPrescricao').value = gerarProximoIdPrescricao();
+    }
+
+    // Carrega usuários
+    function carregarUsuarios() {
+      fetch('usuarios.json')
+        .then(res => res.json())
+        .then(data => {
+          usuarios = data;
+          console.log('✅ Usuários carregados:', Object.keys(usuarios));
+        })
+        .catch(err => {
+          console.warn('⚠️ Usando usuários padrão');
+          usuarios = {
+            admin: '12345',
+            tecnico1: 'senha1',
+            farmacia: 'farm123'
+          };
+        });
+    }
+
+    function pedirLogin(acao, dados) {
+      acaoPendente = acao;
+      dadosPendentes = dados || null;
+      document.getElementById('loginUsuario').value = '';
+      document.getElementById('loginSenha').value = '';
+      document.getElementById('loginErro').style.display = 'none';
+      modalLogin.show();
+    }
+
+    function salvarLocalStorage() {
+      try {
+        localStorage.setItem('registrosNPT_v2', JSON.stringify(registros));
+        localStorage.setItem('contadorPrescricao_v2', contadorPrescricao.toString());
+        console.log('✅ Dados salvos:', registros.length, 'registros | Contador:', contadorPrescricao);
+      } catch (error) {
+        console.error('❌ Erro ao salvar:', error);
+        alert('Erro ao salvar dados localmente.');
+      }
+    }
+
+    function atualizarHistorico() {
+      const tbody = document.getElementById('tabelaHistoricoBody');
+      const filtro = document.getElementById('filtroTipo').value;
+
+      tbody.innerHTML = '';
+
+      const registrosFiltrados = filtro ? registros.filter(r => r.tipo === filtro) : registros;
+
+      registrosFiltrados.forEach(r => {
+        const tr = document.createElement('tr');
+
+        let statusBadge = '';
+        if (r.status) {
+          const statusClass = r.status.toLowerCase().replace(/\s+/g, '-').normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+          statusBadge = `<span class="badge status-${statusClass}">${r.status}</span>`;
+        }
+
+        tr.innerHTML = `
+          <td>${r.dataHora || '-'}</td>
+          <td><strong>${r.tipo || '-'}</strong></td>
+          <td>${r.idPrescricao || r.lote || '-'}</td>
+          <td>${r.paciente || '-'}</td>
+          <td>${r.leito || '-'}</td>
+          <td>${statusBadge} ${r.detalhes || '-'}</td>
+          <td>${r.usuario || '-'}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function atualizarSelectsPrescricoes() {
+      // Atualizar select de recebimento (prescrições aguardando bolsa)
+      const selectReceb = document.getElementById('recebIdPrescricao');
+      selectReceb.innerHTML = '<option value="">Selecione a prescrição...</option>';
+
+      const prescricoesAguardando = registros.filter(r =>
+        r.tipo === 'Prescrição' && r.status === 'Aguardando Bolsa'
+      );
+
+      prescricoesAguardando.forEach(p => {
+        const option = document.createElement('option');
+        option.value = p.idPrescricao;
+        option.textContent = `${p.idPrescricao} - ${p.paciente} (Leito ${p.leito})`;
+        option.dataset.prescricao = JSON.stringify(p);
+        selectReceb.appendChild(option);
+      });
+
+      // Atualizar select de dispensação (bolsas recebidas e conformes)
+      const selectDisp = document.getElementById('dispensaIdPrescricao');
+      selectDisp.innerHTML = '<option value="">Selecione a bolsa...</option>';
+
+      const bolsasRecebidas = registros.filter(r =>
+        r.tipo === 'Recebimento' && r.status === 'Conforme'
+      );
+
+      bolsasRecebidas.forEach(b => {
+        // Verificar se já foi dispensada
+        const jaDispensada = registros.some(r =>
+          r.tipo === 'Dispensação' && r.idPrescricao === b.idPrescricao
+        );
+
+        if (!jaDispensada) {
+          const option = document.createElement('option');
+          option.value = b.idPrescricao;
+          option.textContent = `${b.idPrescricao} - ${b.paciente} (Lote ${b.lote})`;
+          option.dataset.recebimento = JSON.stringify(b);
+          selectDisp.appendChild(option);
+        }
+      });
+    }
+
+    function executarAcaoPendente() {
+      const agora = new Date().toLocaleString('pt-BR');
+      console.log('🔄 Executando ação:', acaoPendente);
+
+      if (acaoPendente === 'prescricao' && dadosPendentes) {
+        const novoRegistro = {
+          tipo: 'Prescrição',
+          idPrescricao: dadosPendentes.idPrescricao,
+          paciente: dadosPendentes.paciente,
+          prontuario: dadosPendentes.prontuario,
+          leito: dadosPendentes.leito,
+          vazao: dadosPendentes.vazao,
+          volume: dadosPendentes.volume,
+          composicao: dadosPendentes.composicao,
+          observacoes: dadosPendentes.observacoes,
+          dataHora: agora,
+          usuario: usuarioLogado,
+          status: 'Aguardando Bolsa',
+          detalhes: `Vazão: ${dadosPendentes.vazao}, Volume: ${dadosPendentes.volume}`
+        };
+        registros.push(novoRegistro);
+        console.log('✅ Prescrição registrada:', novoRegistro);
+
+        // Incrementar contador para próxima prescrição
+        contadorPrescricao++;
+
+        salvarLocalStorage();
+        atualizarHistorico();
+        atualizarSelectsPrescricoes();
+        atualizarCampoIdPrescricao();
+
+        alert('Prescrição registrada com sucesso! ID: ' + dadosPendentes.idPrescricao);
+        document.getElementById('formPrescricao').reset();
+        atualizarCampoIdPrescricao(); // Atualizar novamente após reset
+      }
+
+      if (acaoPendente === 'recebimento' && dadosPendentes) {
+        // Encontrar a prescrição
+        const prescricao = registros.find(r =>
+          r.tipo === 'Prescrição' && r.idPrescricao === dadosPendentes.idPrescricao
+        );
+
+        const novoRegistro = {
+          tipo: 'Recebimento',
+          idPrescricao: dadosPendentes.idPrescricao,
+          lote: dadosPendentes.lote,
+          paciente: prescricao ? prescricao.paciente : 'N/A',
+          leito: prescricao ? prescricao.leito : 'N/A',
+          temperatura: dadosPendentes.temperatura,
+          integridade: dadosPendentes.integridade,
+          status: dadosPendentes.status,
+          conferente: dadosPendentes.conferente,
+          observacoes: dadosPendentes.observacoes,
+          dataHora: agora,
+          usuario: usuarioLogado,
+          detalhes: `Temp: ${dadosPendentes.temperatura}, Integridade: ${dadosPendentes.integridade}, Conferente: ${dadosPendentes.conferente}`
+        };
+        registros.push(novoRegistro);
+
+        // Atualizar status da prescrição
+        if (prescricao) {
+          prescricao.status = dadosPendentes.status === 'Conforme' ? 'Bolsa Recebida' : 'Devolvida';
+        }
+
+        console.log('✅ Recebimento registrado:', novoRegistro);
+        salvarLocalStorage();
+        atualizarHistorico();
+        atualizarSelectsPrescricoes();
+        alert('Recebimento registrado! Status: ' + dadosPendentes.status);
+        document.getElementById('formRecebimento').reset();
+        document.getElementById('recebPacienteInfo').textContent = '-';
+        document.getElementById('recebLeitoInfo').textContent = '-';
+        document.getElementById('recebVazaoInfo').textContent = '-';
+        document.getElementById('recebVolumeInfo').textContent = '-';
+      }
+
+      if (acaoPendente === 'dispensacao' && dadosPendentes) {
+        const recebimento = registros.find(r =>
+          r.tipo === 'Recebimento' && r.idPrescricao === dadosPendentes.idPrescricao
+        );
+
+        const prescricao = registros.find(r =>
+          r.tipo === 'Prescrição' && r.idPrescricao === dadosPendentes.idPrescricao
+        );
+
+        const novoRegistro = {
+          tipo: 'Dispensação',
+          idPrescricao: dadosPendentes.idPrescricao,
+          lote: recebimento ? recebimento.lote : 'N/A',
+          paciente: recebimento ? recebimento.paciente : 'N/A',
+          leito: recebimento ? recebimento.leito : 'N/A',
+          horaDispensa: dadosPendentes.horaDispensa,
+          entregou: dadosPendentes.entregou,
+          recebeu: dadosPendentes.recebeu,
+          observacoes: dadosPendentes.observacoes,
+          dataHora: agora,
+          usuario: usuarioLogado,
+          detalhes: `Hora: ${dadosPendentes.horaDispensa}, Entregou: ${dadosPendentes.entregou}, Recebeu: ${dadosPendentes.recebeu}`
+        };
+        registros.push(novoRegistro);
+
+        // Atualizar status da prescrição
+        if (prescricao) {
+          prescricao.status = 'Dispensada';
+        }
+
+        console.log('✅ Dispensação registrada:', novoRegistro);
+        salvarLocalStorage();
+        atualizarHistorico();
+        atualizarSelectsPrescricoes();
+        alert('Dispensação registrada com sucesso!\n\n⚠️ Lembrete: Preencher formulário Google Forms de indicadores.');
+        document.getElementById('formDispensa').reset();
+        document.getElementById('dispensaPacienteInfo').textContent = '-';
+        document.getElementById('dispensaLeitoInfo').textContent = '-';
+        document.getElementById('dispensaLoteInfo').textContent = '-';
+        document.getElementById('dispensaVazaoInfo').textContent = '-';
+        document.getElementById('dispensaVolumeInfo').textContent = '-';
+      }
+
+      if (acaoPendente === 'perda' && dadosPendentes) {
+        const novoRegistro = {
+          tipo: 'Perda/Devolução',
+          idPrescricao: dadosPendentes.idPrescricao,
+          tipoPerdaString: dadosPendentes.tipoPerdaString,
+          motivo: dadosPendentes.motivo,
+          detalhes: dadosPendentes.detalhes,
+          dataHora: agora,
+          usuario: usuarioLogado
+        };
+        registros.push(novoRegistro);
+
+        // Atualizar status da prescrição se existir
+        const prescricao = registros.find(r =>
+          r.tipo === 'Prescrição' && r.idPrescricao === dadosPendentes.idPrescricao
+        );
+        if (prescricao) {
+          prescricao.status = 'Devolvida';
+        }
+
+        console.log('✅ Perda/Devolução registrada:', novoRegistro);
+        salvarLocalStorage();
+        atualizarHistorico();
+        atualizarSelectsPrescricoes();
+        alert('Perda/Devolução registrada!\n\n⚠️ Lembrete: Preencher formulário Google Forms de perdas.');
+        document.getElementById('formPerdas').reset();
+      }
+
+      acaoPendente = null;
+      dadosPendentes = null;
+    }
+
+    // Inicialização
+    document.addEventListener('DOMContentLoaded', function() {
+      console.log('🚀 Inicializando Sistema NPT HUWC v2...');
+
+      modalLogin = new bootstrap.Modal(document.getElementById('modalLogin'));
+      carregarUsuarios();
+
+      // Carregar registros
+      try {
+        const registrosSalvos = localStorage.getItem('registrosNPT_v2');
+        if (registrosSalvos) {
+          registros = JSON.parse(registrosSalvos);
+          console.log('📋 Registros carregados:', registros.length);
+        }
+      } catch (error) {
+        console.error('❌ Erro ao carregar registros:', error);
+        registros = [];
+      }
+
+      // Carregar contador de prescrição
+      try {
+        const contadorSalvo = localStorage.getItem('contadorPrescricao_v2');
+        if (contadorSalvo) {
+          contadorPrescricao = parseInt(contadorSalvo, 10);
+          console.log('📊 Contador carregado:', contadorPrescricao);
+        }
+      } catch (error) {
+        console.error('❌ Erro ao carregar contador:', error);
+        contadorPrescricao = 1;
+      }
+
+      atualizarHistorico();
+      atualizarSelectsPrescricoes();
+      atualizarCampoIdPrescricao();
+
+      // Event listeners
+
+      // Formulário Prescrição
+      document.getElementById('formPrescricao').addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        const idPrescricao = document.getElementById('idPrescricao').value.trim();
+
+        const dados = {
+          idPrescricao: idPrescricao,
+          paciente: document.getElementById('prescPaciente').value.trim(),
+          prontuario: document.getElementById('prescProntuario').value.trim(),
+          leito: document.getElementById('prescLeito').value.trim(),
+          vazao: document.getElementById('prescVazao').value.trim(),
+          volume: document.getElementById('prescVolume').value.trim(),
+          composicao: document.getElementById('prescComposicao').value.trim(),
+          observacoes: document.getElementById('prescObservacoes').value.trim()
+        };
+
+        pedirLogin('prescricao', dados);
+      });
+
+      // Formulário Recebimento
+      document.getElementById('recebIdPrescricao').addEventListener('change', function() {
+        const option = this.options[this.selectedIndex];
+        if (option.dataset.prescricao) {
+          const presc = JSON.parse(option.dataset.prescricao);
+          document.getElementById('recebPacienteInfo').textContent = presc.paciente;
+          document.getElementById('recebLeitoInfo').textContent = presc.leito;
+          document.getElementById('recebVazaoInfo').textContent = presc.vazao;
+          document.getElementById('recebVolumeInfo').textContent = presc.volume;
+        }
+      });
+
+      document.getElementById('formRecebimento').addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        const dados = {
+          idPrescricao: document.getElementById('recebIdPrescricao').value,
+          lote: document.getElementById('recebLote').value.trim(),
+          temperatura: document.getElementById('recebTemperatura').value,
+          integridade: document.getElementById('recebIntegridade').value,
+          status: document.getElementById('recebStatus').value,
+          conferente: document.getElementById('recebConferente').value.trim(),
+          observacoes: document.getElementById('recebObservacoes').value.trim()
+        };
+
+        if (!dados.idPrescricao) {
+          alert('Selecione uma prescrição!');
+          return;
+        }
+
+        pedirLogin('recebimento', dados);
+      });
+
+      // Formulário Dispensação
+      document.getElementById('dispensaIdPrescricao').addEventListener('change', function() {
+        const option = this.options[this.selectedIndex];
+        if (option.dataset.recebimento) {
+          const receb = JSON.parse(option.dataset.recebimento);
+          const presc = registros.find(r => r.tipo === 'Prescrição' && r.idPrescricao === receb.idPrescricao);
+
+          document.getElementById('dispensaPacienteInfo').textContent = receb.paciente;
+          document.getElementById('dispensaLeitoInfo').textContent = receb.leito;
+          document.getElementById('dispensaLoteInfo').textContent = receb.lote;
+          document.getElementById('dispensaVazaoInfo').textContent = presc ? presc.vazao : '-';
+          document.getElementById('dispensaVolumeInfo').textContent = presc ? presc.volume : '-';
+        }
+      });
+
+      document.getElementById('formDispensa').addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        const dados = {
+          idPrescricao: document.getElementById('dispensaIdPrescricao').value,
+          horaDispensa: document.getElementById('dispensaHora').value,
+          entregou: document.getElementById('dispensaEntregou').value.trim(),
+          recebeu: document.getElementById('dispensaRecebeu').value.trim(),
+          observacoes: document.getElementById('dispensaObservacoes').value.trim()
+        };
+
+        if (!dados.idPrescricao) {
+          alert('Selecione uma bolsa!');
+          return;
+        }
+
+        pedirLogin('dispensacao', dados);
+      });
+
+      // Formulário Perdas
+      document.getElementById('formPerdas').addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        const dados = {
+          idPrescricao: document.getElementById('perdaId').value.trim(),
+          tipoPerdaString: document.getElementById('perdaTipo').value,
+          motivo: document.getElementById('perdaMotivo').value,
+          detalhes: document.getElementById('perdaDetalhes').value.trim()
+        };
+
+        pedirLogin('perda', dados);
+      });
+
+      // Botão Login
+      document.getElementById('btnConfirmarLogin').addEventListener('click', function() {
+        const user = document.getElementById('loginUsuario').value.trim();
+        const pass = document.getElementById('loginSenha').value.trim();
+
+        if (user && usuarios[user] && usuarios[user] === pass) {
+          usuarioLogado = user;
+          document.getElementById('loginErro').style.display = 'none';
+          modalLogin.hide();
+          executarAcaoPendente();
+        } else {
+          document.getElementById('loginErro').style.display = 'block';
+        }
+      });
+
+      // Filtro histórico
+      document.getElementById('filtroTipo').addEventListener('change', atualizarHistorico);
+
+      // Botão atualizar
+      document.getElementById('btnLimparFiltros').addEventListener('click', function() {
+        document.getElementById('filtroTipo').value = '';
+        atualizarHistorico();
+      });
+
+      // Exportar CSV
+      document.getElementById('btnExportarCSV').addEventListener('click', function() {
+        const header = ['Data/Hora', 'Tipo', 'ID/Lote', 'Paciente', 'Leito', 'Status', 'Detalhes', 'Usuário'];
+        const linhas = registros.map(r => {
+          return [
+            r.dataHora || '',
+            r.tipo || '',
+            r.idPrescricao || r.lote || '',
+            r.paciente || '',
+            r.leito || '',
+            r.status || '',
+            (r.detalhes || '').replace(/"/g, '""'),
+            r.usuario || ''
+          ].map(campo => `"${campo}"`).join(',');
+        });
+
+        const csvContent = [header.join(',')].concat(linhas).join('\r\n');
+        const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = 'npt_historico_' + new Date().toISOString().split('T')[0] + '.csv';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      });
+
+      // Exportar PDF (simplificado - pode usar jsPDF se necessário)
+      document.getElementById('btnExportarPDF').addEventListener('click', function() {
+        alert('Funcionalidade de PDF em desenvolvimento. Use a exportação CSV por enquanto.');
+      });
+
+      console.log('✅ Sistema inicializado com sucesso!');
+    });
+  </script>
+</body>
+</html>
