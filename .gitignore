@@ -49,6 +49,3 @@ out/
 # Cache
 .cache/
 *.cache
-
-.vercel
-.env*.local
