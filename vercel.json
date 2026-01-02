@@ -1,0 +1,9 @@
+{
+  "version": 2,
+  "buildCommand": null,
+  "outputDirectory": ".",
+  "ignoreCommand": "echo 'No build step required'",
+  "git": {
+    "deploymentEnabled": true
+  }
+}
