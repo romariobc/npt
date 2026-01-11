@@ -49,3 +49,6 @@ out/
 # Cache
 .cache/
 *.cache
+
+# Documentation (context only, not versioned)
+docs/
