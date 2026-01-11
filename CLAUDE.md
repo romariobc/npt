@@ -2,7 +2,7 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-**Last Updated**: January 7, 2026
+**Last Updated**: January 11, 2026
 **Version**: 2025.12
 **Git Repository**: https://github.com/romariobc/npt
 
@@ -17,6 +17,19 @@ Sistema NPT HUWC (Nutritional Parenteral Therapy) - A single-page web applicatio
 ---
 
 ## Recent Changes
+
+### 🧑‍⚕️ January 11, 2026 - Multi-Profile & Nursing Integration Planning
+
+**Planning Session Completed**:
+- ✅ Analyzed 4 user stories (nurse visualization, nurse returns, pharmacist confirmation, supervisor dashboard)
+- ✅ Identified 6 critical gaps in current system
+- ✅ Created comprehensive 8-week implementation plan (5 phases, small steps)
+- ✅ Designed data schemas for multi-user profiles (ENFERMEIRO, FARMACEUTICO, TECNICO_FARMACIA, SUPERVISOR)
+- ✅ Categorized return reasons (Clinical, Logistic, Technical)
+- ✅ Extended return/disposal data structure with two-stage workflow (nurse registration → pharmacy confirmation)
+- ✅ Full planning documented in [SESSION-SUMMARY-2025-01.md](docs/SESSION-SUMMARY-2025-01.md)
+- 📋 Status: Planning complete, awaiting implementation approval
+- 🎯 Next step: Phase 1, Step 1.1 - User Profile System
 
 ### 📐 January 10, 2026 - EBSERH Brand Manual Integration
 
@@ -107,6 +120,7 @@ This change clarifies which version is local (standalone) vs SharePoint (enterpr
 ### Documentation (in `/docs/` folder)
 - `CLAUDE.md` - This file (project overview and instructions)
 - `README.md` - Main project documentation (GitHub landing page)
+- `SESSION-SUMMARY-2025-01.md` - Multi-profile & nursing integration planning (January 2026)
 - `SHAREPOINT-DEPLOYMENT.md` - Complete SharePoint deployment guide (10 parts)
 - `DOCUMENTACAO_TECNICA.md` - Full technical documentation
 - `ROTEIRO_TESTES.md` - Complete test cases
@@ -898,6 +912,379 @@ This section documents how the Sistema NPT HUWC must comply with the official EB
 
 ---
 
+## Implementation Plan - Multi-Profile & Nursing Integration
+
+**Planning Session**: January 11, 2026
+**Full Details**: See [docs/SESSION-SUMMARY-2025-01.md](docs/SESSION-SUMMARY-2025-01.md)
+**Status**: 📋 Planning Complete | ⏸️ Awaiting Implementation Approval
+
+### Overview
+
+This section documents the planned implementation for extending Sistema NPT with multi-user profile support and nursing staff integration. The plan addresses nursing visibility into the NPT workflow, return/disposal registration by nurses, pharmacy confirmation workflow, and supervisor monitoring dashboard.
+
+---
+
+### User Stories
+
+#### 1. **Nurse - End-to-End Process Visualization**
+**Story**: "Eu como enfermeiro quero ser capaz de visualizar o processo de ponta a ponta através de algum painel integrado"
+
+**Acceptance Criteria**:
+- Dedicated nursing panel (Painel de Enfermagem) visible only to nurses
+- Kanban-style visualization with 4 columns: Solicitadas, Em Preparo, Prontas, Administradas
+- Filter by assigned unit/ward
+- Timeline modal showing complete prescription lifecycle
+- Real-time status updates
+
+---
+
+#### 2. **Nurse - Register Returns/Disposals**
+**Story**: "Eu como enfermeiro responsável pelo setor naquele turno devo ser capaz de devolver ou sinalizar o descarte da bolsa por motivos diversos como: paciente sem acesso, bolsa suspensa, aguardando avaliação médica e outros motivos"
+
+**Acceptance Criteria**:
+- Return/disposal registration form accessible from nursing panel
+- Categorized reasons: Clinical, Logistic, Technical
+- Nursing-specific reasons:
+  - Paciente sem acesso venoso
+  - Bolsa suspensa por indicação médica
+  - Paciente em jejum para procedimento
+  - Aguardando avaliação médica
+  - Óbito do paciente / Alta hospitalar / Transferência de setor
+- Distinction between return to pharmacy vs disposal
+- Required detailed observation field
+- Automatic unit/nurse information capture
+
+---
+
+#### 3. **Pharmacist - Confirm Returns**
+**Story**: "Eu como farmacêutico devo ser capaz de visualizar a devolução da bolsa com a devida justificativa e checar o recebimento ou não da mesma naquele momento"
+
+**Acceptance Criteria**:
+- Dedicated pharmacy confirmation tab (Confirmação de Devoluções)
+- List of pending returns registered by nursing
+- Display nursing justification and observations
+- Confirmation form:
+  - Bag received? (Yes/No)
+  - Bag condition (Intact, Violated, Temperature altered)
+  - Action taken (Reintegrated to stock, Discarded, Returned to supplier)
+  - Pharmacy observations
+- Status update (Pending → Confirmed/Rejected)
+
+---
+
+#### 4. **Pharmacy Chief - Monitor Process Dashboard**
+**Story**: "Eu como chefe da farmácia devo ser capaz de acompanhar todo o processo de ponta a ponta através de um painel visual claro para poder intervir se julgar necessário"
+
+**Acceptance Criteria**:
+- Comprehensive supervisor dashboard
+- KPIs: Total bags dispensed, return rate, average times, pending confirmations
+- Interactive charts (Chart.js): Return reasons by category, returns by unit, temporal evolution
+- Detailed return analysis table
+- Export capabilities (CSV/PDF)
+
+---
+
+### Gaps Identified in Current System
+
+**Gap 1: Missing Nursing-Specific Return Reasons**
+Current return reasons are pharmacy-focused only (temperature, composition, integrity). Nurses cannot document clinical reasons (patient without venous access, suspended by MD, etc.).
+
+**Gap 2: No Distinction Between Return Types**
+Single "Perda/Devolução" record type doesn't differentiate between return to pharmacy (can be restocked) vs disposal (must be discarded).
+
+**Gap 3: No Confirmation Workflow for Returns**
+Returns are final transactions with no verification by pharmacy. No accountability for returned bags, cannot verify bag condition upon return, missing data on whether bags were actually received.
+
+**Gap 4: No Nursing Visualization Panel**
+No dedicated interface for nursing staff to view NPT bag status. Nurses have no visibility into which bags are ready, pending, or delayed.
+
+**Gap 5: No Supervisor Dashboard**
+No overview interface for pharmacy chiefs to monitor operations. Cannot identify bottlenecks, high-return units, or intervene proactively.
+
+**Gap 6: No User Profile/Permission System**
+All authenticated users see all functionality (no role-based access control). Nurses see pharmacy-specific tabs they don't need, no enforcement of workflow responsibilities.
+
+---
+
+### Implementation Plan (8 Weeks, 5 Phases)
+
+#### **Phase 1: Multi-Profile Foundation** (Weeks 1-2)
+
+**Step 1.1: User Profile System** (2-3 days) ⬅️ **NEXT STEP**
+- Update `usuarios.json` with `perfil`, `nome`, `unidade` fields
+- Create `PERFIS` constant with 4 profiles: ENFERMEIRO, FARMACEUTICO, TECNICO_FARMACIA, SUPERVISOR
+- Modify authentication to store profile in sessionStorage
+- Create `verificarPermissao(permissao)` helper function
+- Create `ocultarAbasPorPerfil()` to show/hide tabs based on user role
+
+**Step 1.2: Unit Registration** (1 day)
+- Create configuration form for units/wards
+- Store units in localStorage (`unidadesNPT_v2`)
+- Allow supervisor to add/edit/delete units
+
+**Step 1.3: Prescription Form Extension** (1 day)
+- Add unit selection dropdown to prescription form
+- Update prescription data schema to include `unidade` field
+
+---
+
+#### **Phase 2: Nursing Panel** (Weeks 3-4)
+
+**Step 2.1: Kanban Visualization Panel** (3 days)
+- Create "Painel de Enfermagem" tab (visible only for ENFERMEIRO and SUPERVISOR)
+- Implement 4-column Kanban: Solicitadas, Em Preparo, Prontas, Finalizadas
+- Filter prescriptions by user's assigned unit
+- Create `atualizarPainelEnfermagem()` function
+
+**Step 2.2: Timeline Modal** (2 days)
+- Create modal triggered by clicking Kanban card
+- Display prescription lifecycle timeline with timestamps and responsible users
+
+**Step 2.3: Return/Disposal Form** (3 days)
+- Create categorized return reasons dropdown (Clinical/Logistic/Technical)
+- Add radio buttons for destination type (Return to pharmacy vs Disposal)
+- Update data schema for returns with nursing information
+- Modify `salvarPerda()` to save nursing return data with status PENDENTE
+
+---
+
+#### **Phase 3: Pharmacy Confirmation** (Week 5)
+
+**Step 3.1: Pharmacy Confirmation Tab** (3 days)
+- Create "Confirmação de Devoluções" tab (visible only for FARMACEUTICO and SUPERVISOR)
+- List all returns with status PENDENTE
+- Create confirmation form with bag condition assessment
+- Update return record with pharmacy confirmation data
+- Update status from PENDENTE to CONFIRMADA
+
+---
+
+#### **Phase 4: Supervisor Dashboard** (Weeks 6-7)
+
+**Step 4.1: KPIs and Charts** (3 days)
+- Create "Dashboard Supervisor" tab (visible only for SUPERVISOR)
+- Calculate and display KPIs: dispensed bags, return rate, average times, pending confirmations
+- Create Chart.js visualizations: pie chart (reasons by category), bar chart (returns by unit), line chart (temporal evolution)
+
+**Step 4.2: Return Analysis Table** (2 days)
+- Create detailed return analysis table grouped by reason
+- Add visual progress bars for percentages
+- Add export button (CSV/PDF)
+
+---
+
+#### **Phase 5: UX Improvements** (Week 8)
+
+**Step 5.1: Notifications** (2 days)
+- Create notification badge on tabs showing pending actions
+- Add toast notifications for successful actions
+
+**Step 5.2: Mobile Responsiveness** (2 days)
+- Optimize Kanban board for mobile (stack columns vertically)
+- Make tables horizontally scrollable on mobile
+- Adjust dashboard charts for smaller screens
+
+**Step 5.3: Report Exports** (2 days)
+- Implement PDF export for supervisor reports
+- Add CSV export for return analysis
+- Create print-friendly CSS for reports
+
+---
+
+### Proposed Data Schemas
+
+#### User Profile Constant
+
+```javascript
+const PERFIS = {
+  ENFERMEIRO: {
+    nome: 'Enfermeiro',
+    permissoes: ['visualizar_painel', 'registrar_devolucao'],
+    abasVisiveis: ['painelEnfermagem', 'historico']
+  },
+  FARMACEUTICO: {
+    nome: 'Farmacêutico',
+    permissoes: ['prescrever', 'receber', 'dispensar', 'confirmar_devolucao'],
+    abasVisiveis: ['prescricao', 'recebimento', 'dispensacao', 'devolucoes', 'historico']
+  },
+  TECNICO_FARMACIA: {
+    nome: 'Técnico de Farmácia',
+    permissoes: ['receber', 'dispensar'],
+    abasVisiveis: ['recebimento', 'dispensacao', 'historico']
+  },
+  SUPERVISOR: {
+    nome: 'Supervisor/Chefe',
+    permissoes: ['visualizar_tudo', 'dashboard'],
+    abasVisiveis: ['dashboard', 'prescricao', 'recebimento', 'dispensacao', 'devolucoes', 'historico']
+  }
+};
+```
+
+---
+
+#### Categorized Return Reasons
+
+```javascript
+const MOTIVOS_POR_CATEGORIA = {
+  CLINICA: [
+    'Paciente sem acesso venoso',
+    'Bolsa suspensa por indicação médica',
+    'Paciente em jejum para procedimento',
+    'Óbito do paciente',
+    'Alta hospitalar',
+    'Transferência de setor',
+    'Aguardando avaliação médica'
+  ],
+  LOGISTICA: [
+    'Bolsa não solicitada',
+    'Bolsa duplicada',
+    'Atraso na entrega',
+    'Paciente ausente no momento'
+  ],
+  TECNICA: [
+    'Bolsa violada',
+    'Temperatura inadequada',
+    'Composição incorreta',
+    'Presença de precipitado',
+    'Volume incorreto',
+    'Identificação incorreta'
+  ]
+};
+```
+
+---
+
+#### Extended Return/Disposal Data Structure
+
+```javascript
+{
+  tipo: 'DEVOLUCAO',
+  idPrescricao: string,
+
+  // Dados registrados pelo enfermeiro
+  enfermeiro: {
+    registradoPor: string,     // Username (e.g., "maria.silva")
+    nomeEnfermeiro: string,    // Full name (e.g., "Maria Silva")
+    unidade: string,           // Unit/ward (e.g., "UTI Adulto")
+    dataRegistro: string,      // ISO datetime
+    categoria: string,         // "CLINICA" | "LOGISTICA" | "TECNICA"
+    motivo: string,            // Selected reason from MOTIVOS_POR_CATEGORIA
+    observacoes: string,       // Required detailed description
+    tipoDestino: string        // "DEVOLUCAO_FARMACIA" | "DESCARTE"
+  },
+
+  // Dados confirmados pelo farmacêutico (added after confirmation)
+  farmacia: {
+    confirmadoPor: string,     // Username (e.g., "joao.santos")
+    nomeFarmaceutico: string,  // Full name (e.g., "João Santos")
+    dataConfirmacao: string,   // ISO datetime
+    bolsaRecebida: boolean,    // true if bag was physically received
+    condicaoBolsa: string,     // "INTEGRA" | "VIOLADA" | "TEMPERATURA_ALTERADA"
+    acaoTomada: string,        // "Reintegrada ao estoque" | "Descartada" | "Devolvida ao fornecedor"
+    observacoesFarmacia: string // Optional pharmacy notes
+  },
+
+  status: string,              // "PENDENTE" | "CONFIRMADA" | "REJEITADA"
+  dataHora: string
+}
+```
+
+---
+
+#### Extended User Structure (usuarios.json)
+
+```json
+{
+  "usuarios": [
+    {
+      "usuario": "maria.silva",
+      "senha": "senha123",
+      "perfil": "ENFERMEIRO",
+      "nome": "Maria Silva",
+      "unidade": "UTI Adulto"
+    },
+    {
+      "usuario": "joao.santos",
+      "senha": "senha123",
+      "perfil": "FARMACEUTICO",
+      "nome": "João Santos",
+      "unidade": "Farmácia Central"
+    },
+    {
+      "usuario": "supervisor",
+      "senha": "super456",
+      "perfil": "SUPERVISOR",
+      "nome": "Carlos Mendes",
+      "unidade": "Farmácia Central"
+    }
+  ]
+}
+```
+
+---
+
+#### Extended Prescription Schema (with unit)
+
+```javascript
+{
+  tipo: 'Prescrição',
+  idPrescricao: string,
+  paciente: string,
+  prontuario: string,
+  leito: string,
+  unidade: string,             // NEW: Unit/ward assignment
+  vazao: string,
+  volume: string,
+  composicao: string,
+  observacoes: string,
+  dataHora: string,
+  usuario: string,
+  status: 'Aguardando Bolsa' | 'Bolsa Recebida' | 'Dispensada' | 'Devolvida',
+  detalhes: string
+}
+```
+
+---
+
+### Current Status
+
+**✅ Completed**:
+- [x] User stories analysis and acceptance criteria definition
+- [x] Gap identification (6 critical gaps)
+- [x] 8-week implementation plan with 5 phases divided into small steps
+- [x] Data schema design for multi-profile system
+- [x] Categorized return reasons (Clinical/Logistic/Technical)
+- [x] Extended return/disposal data structure
+- [x] Full planning session documented in [SESSION-SUMMARY-2025-01.md](docs/SESSION-SUMMARY-2025-01.md)
+
+**🔄 Next Step**: **Phase 1, Step 1.1 - User Profile System**
+
+**Awaiting**:
+- User confirmation to proceed with implementation
+- Decision on localStorage vs SharePoint version for implementation
+- Timeline approval (8 weeks or compressed schedule)
+
+---
+
+### Dependencies and Risks
+
+**Dependencies**:
+- `usuarios.json` must be updated before Phase 1 Step 1.1
+- Unit configuration (Step 1.2) must complete before nursing panel (Phase 2)
+- User profile system (Phase 1) is foundational for all other phases
+
+**Risks**:
+1. **localStorage limitations**: No concurrent editing, no real-time sync
+   *Mitigation*: Consider SharePoint version for production
+2. **Complex state management**: Multiple user types with different permissions
+   *Mitigation*: Thorough testing of each profile type
+3. **Data migration**: Existing prescriptions don't have `unidade` field
+   *Mitigation*: Default to "Não especificada" for legacy data
+4. **Timeline pressure**: 8 weeks is aggressive for solo development
+   *Mitigation*: Prioritize Phases 1-3, defer Phase 4-5 if needed
+
+---
+
 ## Important Limitations
 
 ### localStorage Version
@@ -990,11 +1377,17 @@ This section documents how the Sistema NPT HUWC must comply with the official EB
 
 ---
 
-**Document Version**: 1.3
-**Last Review**: January 10, 2026
+**Document Version**: 1.4
+**Last Review**: January 11, 2026
 **Next Review**: March 2026
 
 **Recent Updates**:
+- Added "Implementation Plan - Multi-Profile & Nursing Integration" section
+- Documented 4 user stories with acceptance criteria (nurse panel, returns, confirmation, dashboard)
+- Identified 6 critical gaps requiring resolution
+- Created 8-week implementation plan (5 phases, small steps)
+- Designed data schemas: PERFIS, MOTIVOS_POR_CATEGORIA, extended return structure
+- Created SESSION-SUMMARY-2025-01.md with full planning details
 - Added EBSERH Brand Manual Integration (complete 27-page analysis)
 - Documented official EBSERH colors, typography, logo rules
 - Institutional signatures and co-branding specifications

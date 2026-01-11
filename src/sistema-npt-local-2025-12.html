@@ -3,60 +3,384 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Sistema NPT HUWC - Fluxo Completo</title>
+  <title>Sistema NPT HUWC - Gestão de Terapia Nutricional Parenteral</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
 
+  <!-- Google Fonts - Myriad Pro alternative (Open Sans + Poppins) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+
   <style>
+    /* ==========================================
+       EBSERH Brand Colors & Variables
+       ========================================== */
+    :root {
+      /* EBSERH Official Colors */
+      --ebserh-gray: #9c9c9f;
+      --ebserh-green: #97bf29;
+      --ebserh-green-dark: #7da021;
+
+      /* Supporting Colors */
+      --gray-light: #f8f9fa;
+      --gray-medium: #dee2e6;
+      --gray-dark: #333333;
+      --white: #ffffff;
+
+      /* Status Colors (EBSERH compliant) */
+      --status-waiting: #fff3cd;
+      --status-waiting-text: #856404;
+      --status-received: #d1ecf1;
+      --status-received-text: #0c5460;
+      --status-success: #d4edda;
+      --status-success-text: #155724;
+      --status-error: #f8d7da;
+      --status-error-text: #721c24;
+
+      /* Typography */
+      --font-primary: 'Open Sans', 'Myriad Pro', Arial, sans-serif;
+      --font-headings: 'Poppins', 'Myriad Pro', Arial, sans-serif;
+
+      /* Spacing */
+      --spacing-xs: 8px;
+      --spacing-sm: 16px;
+      --spacing-md: 24px;
+      --spacing-lg: 32px;
+      --spacing-xl: 48px;
+    }
+
+    /* ==========================================
+       Global Styles
+       ========================================== */
+    * {
+      box-sizing: border-box;
+    }
+
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background-color: #f8f9fa;
+      font-family: var(--font-primary);
+      background-color: var(--gray-light);
+      color: var(--gray-dark);
+      line-height: 1.6;
+      margin: 0;
+      padding: 0;
     }
 
     .container {
       max-width: 1400px;
+      padding: 0 var(--spacing-md);
     }
 
-    h1 {
+    /* ==========================================
+       Institutional Header (EBSERH Branding)
+       ========================================== */
+    .institutional-header {
+      background-color: var(--white);
+      border-bottom: 3px solid var(--ebserh-green);
+      padding: var(--spacing-md) 0;
+      margin-bottom: var(--spacing-lg);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .institutional-header .header-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 0 var(--spacing-md);
+    }
+
+    .institutional-header .logos-left {
+      display: flex;
+      gap: var(--spacing-md);
+      align-items: center;
+    }
+
+    .institutional-header .institution-info {
+      flex: 1;
       text-align: center;
-      margin-bottom: 30px;
-      color: #2c3e50;
+      padding: 0 var(--spacing-md);
     }
 
-    .alert-info-custom {
-      background-color: #e7f3ff;
-      border-left: 4px solid #0d6efd;
-      padding: 15px;
-      margin-bottom: 20px;
+    .institutional-header .institution-info h1 {
+      font-family: var(--font-headings);
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--ebserh-gray);
+      margin: 0 0 4px 0;
+      line-height: 1.2;
+    }
+
+    .institutional-header .institution-info h2 {
+      font-family: var(--font-primary);
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--gray-dark);
+      margin: 0;
+      line-height: 1.2;
+    }
+
+    .institutional-header .logos-right {
+      display: flex;
+      gap: var(--spacing-md);
+      align-items: center;
+    }
+
+    .institutional-header .logo-placeholder {
+      width: 60px;
+      height: 60px;
+      background-color: var(--ebserh-gray);
+      color: var(--white);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-align: center;
+      padding: 4px;
       border-radius: 4px;
     }
 
-    .form-label {
-      font-weight: 600;
-      margin-bottom: 5px;
+    .institutional-header .logo-ebserh {
+      background-color: var(--ebserh-green);
     }
 
-    .badge-status {
-      font-size: 0.85rem;
-      padding: 5px 10px;
+    /* Responsive header */
+    @media (max-width: 768px) {
+      .institutional-header .header-content {
+        flex-direction: column;
+        gap: var(--spacing-sm);
+      }
+
+      .institutional-header .institution-info {
+        order: -1;
+        margin-bottom: var(--spacing-sm);
+      }
+
+      .institutional-header .institution-info h1 {
+        font-size: 1.2rem;
+      }
+
+      .institutional-header .institution-info h2 {
+        font-size: 1rem;
+      }
+    }
+
+    /* ==========================================
+       System Title
+       ========================================== */
+    .system-title {
+      text-align: center;
+      margin-bottom: var(--spacing-lg);
+    }
+
+    .system-title h1 {
+      font-family: var(--font-headings);
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--ebserh-gray);
+      margin-bottom: var(--spacing-xs);
+    }
+
+    .system-title p {
+      color: #6c757d;
+      font-size: 1rem;
+      margin: 0;
+    }
+
+    /* ==========================================
+       Tabs Navigation
+       ========================================== */
+    .nav-tabs {
+      border-bottom: 2px solid var(--ebserh-gray);
+      margin-bottom: var(--spacing-lg);
+    }
+
+    .nav-tabs .nav-link {
+      font-family: var(--font-headings);
+      font-weight: 600;
+      color: var(--gray-dark);
+      border: none;
+      border-bottom: 3px solid transparent;
+      padding: var(--spacing-sm) var(--spacing-md);
+      transition: all 0.3s ease;
+    }
+
+    .nav-tabs .nav-link:hover {
+      color: var(--ebserh-green);
+      border-bottom-color: var(--ebserh-green);
+    }
+
+    .nav-tabs .nav-link.active {
+      color: var(--ebserh-green);
+      background-color: transparent;
+      border-bottom-color: var(--ebserh-green);
+      font-weight: 700;
+    }
+
+    /* ==========================================
+       Alert Info Custom
+       ========================================== */
+    .alert-info-custom {
+      background-color: #e8f5e9;
+      border-left: 4px solid var(--ebserh-green);
+      padding: var(--spacing-md);
+      margin-bottom: var(--spacing-md);
+      border-radius: 4px;
+      font-size: 0.95rem;
+    }
+
+    .alert-info-custom strong {
+      color: var(--ebserh-green-dark);
+      display: block;
+      margin-bottom: var(--spacing-xs);
+    }
+
+    /* ==========================================
+       Forms
+       ========================================== */
+    .form-label {
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: var(--gray-dark);
+      font-size: 0.9rem;
+    }
+
+    .form-control,
+    .form-select {
+      border: 1px solid var(--gray-medium);
+      border-radius: 4px;
+      padding: 10px 12px;
+      font-size: 0.95rem;
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .form-control:focus,
+    .form-select:focus {
+      border-color: var(--ebserh-green);
+      box-shadow: 0 0 0 0.2rem rgba(151, 191, 41, 0.25);
+      outline: none;
     }
 
     .readonly-highlight {
       background-color: #e9ecef !important;
       cursor: not-allowed;
+      font-weight: 600;
+      color: var(--ebserh-gray);
     }
 
-    .card-header {
-      background-color: #f8f9fa;
-      border-bottom: 2px solid #dee2e6;
+    /* ==========================================
+       Buttons
+       ========================================== */
+    .btn {
+      font-family: var(--font-headings);
       font-weight: 600;
+      padding: 10px 24px;
+      border-radius: 4px;
+      transition: all 0.3s ease;
+      border: none;
+    }
+
+    .btn-primary {
+      background-color: var(--ebserh-green);
+      color: var(--white);
+    }
+
+    .btn-primary:hover {
+      background-color: var(--ebserh-green-dark);
+      color: var(--white);
+    }
+
+    .btn-success {
+      background-color: #28a745;
+      color: var(--white);
+    }
+
+    .btn-success:hover {
+      background-color: #218838;
+    }
+
+    .btn-danger {
+      background-color: #dc3545;
+      color: var(--white);
+    }
+
+    .btn-danger:hover {
+      background-color: #c82333;
+    }
+
+    .btn-secondary {
+      background-color: var(--ebserh-gray);
+      color: var(--white);
+    }
+
+    .btn-secondary:hover {
+      background-color: #7a7a7c;
+    }
+
+    .btn-outline-primary {
+      border: 2px solid var(--ebserh-green);
+      color: var(--ebserh-green);
+      background-color: transparent;
+    }
+
+    .btn-outline-primary:hover {
+      background-color: var(--ebserh-green);
+      color: var(--white);
+    }
+
+    .btn-outline-danger {
+      border: 2px solid #dc3545;
+      color: #dc3545;
+      background-color: transparent;
+    }
+
+    .btn-outline-danger:hover {
+      background-color: #dc3545;
+      color: var(--white);
+    }
+
+    .btn-outline-secondary {
+      border: 2px solid var(--ebserh-gray);
+      color: var(--ebserh-gray);
+      background-color: transparent;
+    }
+
+    .btn-outline-secondary:hover {
+      background-color: var(--ebserh-gray);
+      color: var(--white);
     }
 
     .btn-group-custom {
       display: flex;
-      gap: 10px;
+      gap: var(--spacing-sm);
       flex-wrap: wrap;
     }
 
+    /* ==========================================
+       Cards
+       ========================================== */
+    .card {
+      border: 1px solid var(--gray-medium);
+      border-radius: 4px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+
+    .card-header {
+      background-color: var(--gray-light);
+      border-bottom: 2px solid var(--ebserh-green);
+      font-weight: 600;
+      color: var(--gray-dark);
+      padding: var(--spacing-sm) var(--spacing-md);
+    }
+
+    .card-body {
+      padding: var(--spacing-md);
+    }
+
+    /* ==========================================
+       Tables
+       ========================================== */
     table {
       font-size: 0.9rem;
     }
@@ -65,42 +389,208 @@
       background-color: #f1f3f5;
     }
 
-    .status-aguardando { background-color: #fff3cd; color: #856404; }
-    .status-recebida { background-color: #d1ecf1; color: #0c5460; }
-    .status-dispensada { background-color: #d4edda; color: #155724; }
-    .status-devolvida { background-color: #f8d7da; color: #721c24; }
-    .status-conforme { background-color: #d4edda; color: #155724; }
-    .status-inconsistente { background-color: #f8d7da; color: #721c24; }
+    .table thead {
+      background-color: var(--ebserh-gray);
+      color: var(--white);
+    }
+
+    .table thead th {
+      font-weight: 600;
+      border: none;
+      padding: var(--spacing-sm);
+    }
+
+    .table tbody td {
+      padding: var(--spacing-sm);
+      vertical-align: middle;
+    }
+
+    /* ==========================================
+       Status Badges
+       ========================================== */
+    .badge-status {
+      font-size: 0.85rem;
+      padding: 6px 12px;
+      border-radius: 4px;
+      font-weight: 600;
+    }
+
+    .status-aguardando,
+    .status-aguardando-bolsa {
+      background-color: var(--status-waiting);
+      color: var(--status-waiting-text);
+    }
+
+    .status-recebida,
+    .status-bolsa-recebida {
+      background-color: var(--status-received);
+      color: var(--status-received-text);
+    }
+
+    .status-dispensada {
+      background-color: var(--status-success);
+      color: var(--status-success-text);
+    }
+
+    .status-devolvida {
+      background-color: var(--status-error);
+      color: var(--status-error-text);
+    }
+
+    .status-conforme {
+      background-color: var(--status-success);
+      color: var(--status-success-text);
+    }
+
+    .status-inconsistente {
+      background-color: var(--status-error);
+      color: var(--status-error-text);
+    }
+
+    /* ==========================================
+       Alerts
+       ========================================== */
+    .alert-warning {
+      background-color: #fff3cd;
+      border-left: 4px solid #ffc107;
+      color: #856404;
+    }
+
+    .alert-info {
+      background-color: #d1ecf1;
+      border-left: 4px solid #17a2b8;
+      color: #0c5460;
+    }
+
+    /* ==========================================
+       Modal
+       ========================================== */
+    .modal-header {
+      background-color: var(--ebserh-gray);
+      color: var(--white);
+      border-bottom: 3px solid var(--ebserh-green);
+    }
+
+    .modal-title {
+      font-family: var(--font-headings);
+      font-weight: 600;
+    }
+
+    .modal-footer {
+      border-top: 1px solid var(--gray-medium);
+    }
+
+    /* ==========================================
+       Footer
+       ========================================== */
+    .system-footer {
+      background-color: var(--white);
+      border-top: 2px solid var(--ebserh-green);
+      padding: var(--spacing-md) 0;
+      margin-top: var(--spacing-xl);
+      text-align: center;
+      font-size: 0.85rem;
+      color: #6c757d;
+    }
+
+    /* ==========================================
+       Print Styles (EBSERH Monocolor)
+       ========================================== */
+    @media print {
+      :root {
+        --ebserh-gray: #000000;
+        --ebserh-green: #000000;
+      }
+
+      .institutional-header {
+        border-bottom-color: #000000;
+      }
+
+      .nav-tabs,
+      .btn-group-custom,
+      .modal {
+        display: none !important;
+      }
+
+      .logo-placeholder {
+        filter: grayscale(100%);
+      }
+    }
+
+    /* ==========================================
+       Accessibility
+       ========================================== */
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border-width: 0;
+    }
   </style>
 </head>
 <body>
+  <!-- Institutional Header (EBSERH Branding) -->
+  <header class="institutional-header">
+    <div class="header-content">
+      <div class="logos-left">
+        <div class="logo-placeholder" aria-label="Logo SUS">SUS</div>
+        <div class="logo-placeholder" aria-label="Logo UFC">UFC</div>
+        <div class="logo-placeholder" aria-label="Logo HUWC">HUWC</div>
+      </div>
+      <div class="institution-info">
+        <h1>Universidade Federal do Ceará</h1>
+        <h2>Hospital Universitário Walter Cantídio</h2>
+      </div>
+      <div class="logos-right">
+        <div class="logo-placeholder logo-ebserh" aria-label="Logo EBSERH">EBSERH</div>
+      </div>
+    </div>
+  </header>
+
   <div class="container py-4">
-    <h1>📦 Sistema NPT HUWC - Gestão Completa</h1>
-    <p class="text-center text-muted mb-4">Fluxo: Prescrição → Recebimento → Dispensação | Vigência: 02/12/2025</p>
+    <div class="system-title">
+      <h1>Sistema NPT HUWC</h1>
+      <p>Gestão de Terapia Nutricional Parenteral | Vigência: 02/12/2025</p>
+    </div>
 
     <ul class="nav nav-tabs mb-3" id="mainTabs" role="tablist">
-      <li class="nav-item">
-        <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tabPrescricao">1. Prescrição</button>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tabPrescricao" type="button" role="tab">
+          1. Prescrição
+        </button>
       </li>
-      <li class="nav-item">
-        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabRecebimento">2. Recebimento Bolsa</button>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabRecebimento" type="button" role="tab">
+          2. Recebimento Bolsa
+        </button>
       </li>
-      <li class="nav-item">
-        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabDispensa">3. Dispensação</button>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabDispensa" type="button" role="tab">
+          3. Dispensação
+        </button>
       </li>
-      <li class="nav-item">
-        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabPerdas">❌ Perdas/Devoluções</button>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabPerdas" type="button" role="tab">
+          Perdas/Devoluções
+        </button>
       </li>
-      <li class="nav-item">
-        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabHistorico">📊 Histórico</button>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabHistorico" type="button" role="tab">
+          Histórico
+        </button>
       </li>
     </ul>
 
     <div class="tab-content">
       <!-- ABA 1: PRESCRIÇÃO -->
-      <div class="tab-pane fade show active" id="tabPrescricao">
+      <div class="tab-pane fade show active" id="tabPrescricao" role="tabpanel">
         <div class="alert-info-custom">
-          <strong>📋 Etapa 1: Registro da Prescrição Médica</strong><br>
+          <strong>Etapa 1: Registro da Prescrição Médica</strong>
           Prescrição recebida por e-mail (fscmhuwc@gmail.com) e encaminhada para Pronutrir.<br>
           Imprimir 2 vias: Via 1 (arquivo) + Via 2 (conferência de recebimento).
         </div>
@@ -109,31 +599,31 @@
           <div class="row">
             <div class="col-md-4 mb-3">
               <label class="form-label">ID da Prescrição (Auto-gerado)</label>
-              <input type="text" id="idPrescricao" class="form-control readonly-highlight" readonly />
+              <input type="text" id="idPrescricao" class="form-control readonly-highlight" readonly aria-label="ID da Prescrição" />
               <small class="text-muted">Sequência global automática</small>
             </div>
             <div class="col-md-4 mb-3">
               <label class="form-label">Nome do Paciente *</label>
-              <input type="text" id="prescPaciente" class="form-control" required />
+              <input type="text" id="prescPaciente" class="form-control" required aria-required="true" />
             </div>
             <div class="col-md-2 mb-3">
               <label class="form-label">Prontuário *</label>
-              <input type="text" id="prescProntuario" class="form-control" required />
+              <input type="text" id="prescProntuario" class="form-control" required aria-required="true" />
             </div>
             <div class="col-md-2 mb-3">
               <label class="form-label">Leito *</label>
-              <input type="text" id="prescLeito" class="form-control" required />
+              <input type="text" id="prescLeito" class="form-control" required aria-required="true" />
             </div>
           </div>
 
           <div class="row">
             <div class="col-md-3 mb-3">
               <label class="form-label">Vazão *</label>
-              <input type="text" id="prescVazao" class="form-control" placeholder="Ex: 50 mL/h" required />
+              <input type="text" id="prescVazao" class="form-control" placeholder="Ex: 50 mL/h" required aria-required="true" />
             </div>
             <div class="col-md-3 mb-3">
               <label class="form-label">Volume Total *</label>
-              <input type="text" id="prescVolume" class="form-control" placeholder="Ex: 1200 mL" required />
+              <input type="text" id="prescVolume" class="form-control" placeholder="Ex: 1200 mL" required aria-required="true" />
             </div>
             <div class="col-md-6 mb-3">
               <label class="form-label">Composição</label>
@@ -146,14 +636,14 @@
             <textarea id="prescObservacoes" class="form-control" rows="2"></textarea>
           </div>
 
-          <button type="submit" class="btn btn-primary">💾 Salvar Prescrição</button>
+          <button type="submit" class="btn btn-primary">Salvar Prescrição</button>
         </form>
       </div>
 
       <!-- ABA 2: RECEBIMENTO DA BOLSA -->
-      <div class="tab-pane fade" id="tabRecebimento">
+      <div class="tab-pane fade" id="tabRecebimento" role="tabpanel">
         <div class="alert-info-custom">
-          <strong>📦 Etapa 2: Conferência do Recebimento da Bolsa (Tarde)</strong><br>
+          <strong>Etapa 2: Conferência do Recebimento da Bolsa (Tarde)</strong>
           Conferir bolsa vs prescrição: rótulo, nome, leito, vazão, temperatura, integridade.<br>
           Pode ser realizado por farmacêutico ou técnico treinado.
         </div>
@@ -162,14 +652,14 @@
           <div class="row">
             <div class="col-md-6 mb-3">
               <label class="form-label">ID da Prescrição *</label>
-              <select id="recebIdPrescricao" class="form-control" required>
+              <select id="recebIdPrescricao" class="form-control" required aria-required="true">
                 <option value="">Selecione a prescrição...</option>
               </select>
               <small class="text-muted">Apenas prescrições aguardando bolsa</small>
             </div>
             <div class="col-md-6 mb-3">
               <label class="form-label">Número do Lote da Bolsa *</label>
-              <input type="text" id="recebLote" class="form-control" placeholder="Lote da Pronutrir" required />
+              <input type="text" id="recebLote" class="form-control" placeholder="Lote da Pronutrir" required aria-required="true" />
             </div>
           </div>
 
@@ -196,31 +686,31 @@
           <div class="row">
             <div class="col-md-3 mb-3">
               <label class="form-label">Temperatura OK? *</label>
-              <select id="recebTemperatura" class="form-control" required>
+              <select id="recebTemperatura" class="form-control" required aria-required="true">
                 <option value="">Selecione...</option>
-                <option value="Sim">✓ Sim</option>
-                <option value="Não">✗ Não</option>
+                <option value="Sim">Sim</option>
+                <option value="Não">Não</option>
               </select>
             </div>
             <div class="col-md-3 mb-3">
               <label class="form-label">Integridade da Bolsa? *</label>
-              <select id="recebIntegridade" class="form-control" required>
+              <select id="recebIntegridade" class="form-control" required aria-required="true">
                 <option value="">Selecione...</option>
-                <option value="Íntegra">✓ Íntegra</option>
-                <option value="Violada">✗ Violada</option>
+                <option value="Íntegra">Íntegra</option>
+                <option value="Violada">Violada</option>
               </select>
             </div>
             <div class="col-md-3 mb-3">
               <label class="form-label">Status da Conferência *</label>
-              <select id="recebStatus" class="form-control" required>
+              <select id="recebStatus" class="form-control" required aria-required="true">
                 <option value="">Selecione...</option>
-                <option value="Conforme">✓ Conforme</option>
-                <option value="Inconsistente">✗ Inconsistente</option>
+                <option value="Conforme">Conforme</option>
+                <option value="Inconsistente">Inconsistente</option>
               </select>
             </div>
             <div class="col-md-3 mb-3">
               <label class="form-label">Conferente *</label>
-              <input type="text" id="recebConferente" class="form-control" placeholder="Nome do conferente" required />
+              <input type="text" id="recebConferente" class="form-control" placeholder="Nome do conferente" required aria-required="true" />
             </div>
           </div>
 
@@ -230,17 +720,17 @@
           </div>
 
           <div class="alert alert-warning">
-            <strong>⚠️ Importante:</strong> Se status = Inconsistente, a bolsa será marcada para devolução à Pronutrir.
+            <strong>Importante:</strong> Se status = Inconsistente, a bolsa será marcada para devolução à Pronutrir.
           </div>
 
-          <button type="submit" class="btn btn-success">✓ Confirmar Recebimento</button>
+          <button type="submit" class="btn btn-success">Confirmar Recebimento</button>
         </form>
       </div>
 
       <!-- ABA 3: DISPENSAÇÃO -->
-      <div class="tab-pane fade" id="tabDispensa">
+      <div class="tab-pane fade" id="tabDispensa" role="tabpanel">
         <div class="alert-info-custom">
-          <strong>🌙 Etapa 3: Dispensação para Unidade (Período Noturno ~ 21h)</strong><br>
+          <strong>Etapa 3: Dispensação para Unidade (Período Noturno ~ 21h)</strong>
           Realizar nova conferência obrigatória entre prescrição e bolsa.<br>
           Enviar bolsa com prescrição médica para a unidade.
         </div>
@@ -249,7 +739,7 @@
           <div class="row">
             <div class="col-md-12 mb-3">
               <label class="form-label">Selecionar Bolsa para Dispensar *</label>
-              <select id="dispensaIdPrescricao" class="form-control" required>
+              <select id="dispensaIdPrescricao" class="form-control" required aria-required="true">
                 <option value="">Selecione a bolsa...</option>
               </select>
               <small class="text-muted">Apenas bolsas recebidas e conformes</small>
@@ -282,15 +772,15 @@
           <div class="row">
             <div class="col-md-3 mb-3">
               <label class="form-label">Hora da Dispensação *</label>
-              <input type="time" id="dispensaHora" class="form-control" value="21:00" required />
+              <input type="time" id="dispensaHora" class="form-control" value="21:00" required aria-required="true" />
             </div>
             <div class="col-md-4 mb-3">
               <label class="form-label">Quem Entregou *</label>
-              <input type="text" id="dispensaEntregou" class="form-control" placeholder="Nome do farmacêutico" required />
+              <input type="text" id="dispensaEntregou" class="form-control" placeholder="Nome do farmacêutico" required aria-required="true" />
             </div>
             <div class="col-md-5 mb-3">
               <label class="form-label">Quem Recebeu (Unidade) *</label>
-              <input type="text" id="dispensaRecebeu" class="form-control" placeholder="Nome do profissional da unidade" required />
+              <input type="text" id="dispensaRecebeu" class="form-control" placeholder="Nome do profissional da unidade" required aria-required="true" />
             </div>
           </div>
 
@@ -300,17 +790,17 @@
           </div>
 
           <div class="alert alert-info">
-            <strong>ℹ️ Lembrete:</strong> Preencher formulário de indicador (Google Forms - Bolsas de nutrição parenteral dispensadas).
+            <strong>Lembrete:</strong> Preencher formulário de indicador (Google Forms - Bolsas de nutrição parenteral dispensadas).
           </div>
 
-          <button type="submit" class="btn btn-primary">📤 Confirmar Dispensação</button>
+          <button type="submit" class="btn btn-primary">Confirmar Dispensação</button>
         </form>
       </div>
 
       <!-- ABA 4: PERDAS/DEVOLUÇÕES -->
-      <div class="tab-pane fade" id="tabPerdas">
+      <div class="tab-pane fade" id="tabPerdas" role="tabpanel">
         <div class="alert-info-custom">
-          <strong>❌ Registro de Perdas e Devoluções</strong><br>
+          <strong>Registro de Perdas e Devoluções</strong>
           Registrar bolsas devolvidas à Pronutrir ou perdidas por qualquer motivo.
         </div>
 
@@ -318,11 +808,11 @@
           <div class="row">
             <div class="col-md-8 mb-3">
               <label class="form-label">ID da Prescrição / Lote *</label>
-              <input type="text" id="perdaId" class="form-control" placeholder="ID da prescrição ou número do lote" required />
+              <input type="text" id="perdaId" class="form-control" placeholder="ID da prescrição ou número do lote" required aria-required="true" />
             </div>
             <div class="col-md-4 mb-3">
               <label class="form-label">Tipo *</label>
-              <select id="perdaTipo" class="form-control" required>
+              <select id="perdaTipo" class="form-control" required aria-required="true">
                 <option value="">Selecione...</option>
                 <option value="Devolução">Devolução à Pronutrir</option>
                 <option value="Perda">Perda</option>
@@ -332,7 +822,7 @@
 
           <div class="mb-3">
             <label class="form-label">Motivo *</label>
-            <select id="perdaMotivo" class="form-control" required>
+            <select id="perdaMotivo" class="form-control" required aria-required="true">
               <option value="">Selecione o motivo...</option>
               <option value="Temperatura inadequada">Temperatura inadequada</option>
               <option value="Composição incorreta">Composição incorreta</option>
@@ -349,23 +839,23 @@
 
           <div class="mb-3">
             <label class="form-label">Detalhes/Observações *</label>
-            <textarea id="perdaDetalhes" class="form-control" rows="3" placeholder="Descreva o ocorrido em detalhes" required></textarea>
+            <textarea id="perdaDetalhes" class="form-control" rows="3" placeholder="Descreva o ocorrido em detalhes" required aria-required="true"></textarea>
           </div>
 
           <div class="alert alert-warning">
-            <strong>⚠️ Importante:</strong> Este registro será incluído no relatório de perdas. Preencher também o formulário Google Forms de bolsas perdidas.
+            <strong>Importante:</strong> Este registro será incluído no relatório de perdas. Preencher também o formulário Google Forms de bolsas perdidas.
           </div>
 
-          <button type="submit" class="btn btn-danger">💀 Registrar Perda/Devolução</button>
+          <button type="submit" class="btn btn-danger">Registrar Perda/Devolução</button>
         </form>
       </div>
 
       <!-- ABA 5: HISTÓRICO -->
-      <div class="tab-pane fade" id="tabHistorico">
+      <div class="tab-pane fade" id="tabHistorico" role="tabpanel">
         <div class="mb-3 btn-group-custom">
-          <button id="btnExportarCSV" class="btn btn-outline-primary">📊 Exportar CSV</button>
-          <button id="btnExportarPDF" class="btn btn-outline-danger">📄 Exportar PDF</button>
-          <button id="btnLimparFiltros" class="btn btn-outline-secondary">🔄 Atualizar</button>
+          <button id="btnExportarCSV" class="btn btn-outline-primary">Exportar CSV</button>
+          <button id="btnExportarPDF" class="btn btn-outline-danger">Exportar PDF</button>
+          <button id="btnLimparFiltros" class="btn btn-outline-secondary">Atualizar</button>
         </div>
 
         <div class="mb-3">
@@ -381,15 +871,15 @@
 
         <div class="table-responsive">
           <table class="table table-bordered table-hover table-sm">
-            <thead class="table-light">
+            <thead>
               <tr>
-                <th>Data/Hora</th>
-                <th>Tipo</th>
-                <th>ID/Lote</th>
-                <th>Paciente</th>
-                <th>Leito</th>
-                <th>Status/Detalhes</th>
-                <th>Usuário</th>
+                <th scope="col">Data/Hora</th>
+                <th scope="col">Tipo</th>
+                <th scope="col">ID/Lote</th>
+                <th scope="col">Paciente</th>
+                <th scope="col">Leito</th>
+                <th scope="col">Status/Detalhes</th>
+                <th scope="col">Usuário</th>
               </tr>
             </thead>
             <tbody id="tabelaHistoricoBody"></tbody>
@@ -399,17 +889,23 @@
     </div>
   </div>
 
+  <!-- Footer -->
+  <footer class="system-footer">
+    <p>Sistema NPT HUWC &copy; 2025 | EBSERH - Hospitais Universitários Federais</p>
+    <p><small>Desenvolvido em conformidade com o Manual de Identidade Visual EBSERH v2.2</small></p>
+  </footer>
+
   <!-- Modal Autenticação -->
-  <div class="modal fade" id="modalLogin" tabindex="-1">
+  <div class="modal fade" id="modalLogin" tabindex="-1" aria-labelledby="modalLoginLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title">🔐 Autenticação Necessária</h5>
+          <h5 class="modal-title" id="modalLoginLabel">Autenticação Necessária</h5>
         </div>
         <div class="modal-body">
-          <input id="loginUsuario" class="form-control mb-2" placeholder="Usuário" autocomplete="username" />
-          <input id="loginSenha" type="password" class="form-control mb-2" placeholder="Senha" autocomplete="current-password" />
-          <div id="loginErro" class="text-danger small" style="display:none;">Usuário ou senha inválidos</div>
+          <input id="loginUsuario" class="form-control mb-2" placeholder="Usuário" autocomplete="username" aria-label="Usuário" />
+          <input id="loginSenha" type="password" class="form-control mb-2" placeholder="Senha" autocomplete="current-password" aria-label="Senha" />
+          <div id="loginErro" class="text-danger small" style="display:none;" role="alert">Usuário ou senha inválidos</div>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
