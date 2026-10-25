@@ -1,0 +1,12 @@
+.git
+docs
+governance
+node_modules
+.env*
+.vercel
+src/auth-simulator.js
+src/config.js
+src/sharepoint-api.js
+src/usuarios.json
+src/sistema-npt-sharepoint-2025-12.html
+src/sistema-npt-2025-08-legacy.html

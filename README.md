@@ -1,5 +1,11 @@
 # 📦 Sistema NPT HUWC
 
+> **Demonstração individual de portfólio:** a preparação para Vercel reutiliza a
+> interface local com acesso simulado `demo / demo`, dados exclusivamente fictícios
+> e persistência apenas neste navegador. Consulte [execução e limitações](apps/web/README.md).
+> As descrições institucionais e de produção abaixo pertencem à documentação
+> anterior e não comprovam implantação, segurança ou validação em ambiente real.
+
 Sistema de Gestão de Nutrição Parenteral Total (NPT) desenvolvido para o Hospital Universitário Walter Cantídio (HUWC).
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)

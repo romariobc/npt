@@ -4,6 +4,7 @@
 
 # Node modules (se houver)
 node_modules/
+.vercel/
 
 # Logs
 *.log
