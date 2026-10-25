@@ -801,7 +801,7 @@
       <div class="tab-pane fade" id="tabPerdas" role="tabpanel">
         <div class="alert-info-custom">
           <strong>Registro de Perdas e Devoluções</strong>
-          Registrar bolsas devolvidas à Pronutrir ou perdidas por qualquer motivo.
+          Registrar perdas e devoluções, indicando o tipo, o motivo e os detalhes da ocorrência.
         </div>
 
         <form id="formPerdas">
@@ -814,7 +814,9 @@
               <label class="form-label">Tipo *</label>
               <select id="perdaTipo" class="form-control" required aria-required="true">
                 <option value="">Selecione...</option>
-                <option value="Devolução">Devolução à Pronutrir</option>
+                <option value="Orientação da enfermagem">Orientação da enfermagem</option>
+                <option value="Orientação médica">Orientação médica</option>
+                <option value="Outro">Outro</option>
                 <option value="Perda">Perda</option>
               </select>
             </div>
